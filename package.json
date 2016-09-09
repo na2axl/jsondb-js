@@ -1,0 +1,37 @@
+{
+  "name": "jsondb",
+  "version": "1.0.0",
+  "description": "Manage JSON files as databases with JSONDB Query Language (JQL)",
+  "directories": {
+    "src": "src"
+  },
+  "main": "./src/JSONDB",
+  "scripts": {
+    "test": "node test/jsondb-test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/na2axl/jsondb-js.git"
+  },
+  "keywords": [
+    "json",
+    "databases",
+    "db",
+    "file"
+  ],
+  "author": {
+    "name": "Axel Nana",
+    "email": "ax.lnana@outlook.com"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "dependencies": {
+    "jssha": "~2.1.0"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/na2axl/jsondb-js/issues"
+  },
+  "homepage": "https://github.com/na2axl/jsondb-js#readme"
+}
