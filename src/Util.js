@@ -358,7 +358,7 @@ Util.prototype.extends = function (child, parent) {
 Util.prototype.serialize = function (value) {
     var ret;
     if (Array.isArray(value)) {
-        ret = "[array][" + value.join(',') + "]";
+        ret = "[array][" + value.join(':||:') + "]";
     } else if (typeof value === 'object') {
         ret = "[object][" + JSON.stringify(value) + "]";
     }
@@ -377,7 +377,7 @@ Util.prototype.unserialize = function (string) {
     var serialized = regexp[2];
 
     if (type === 'array') {
-        ret = serialized.split(',');
+        ret = serialized.split(':||:');
     } else if (type === 'object') {
         ret = JSON.parse(serialized);
     }
