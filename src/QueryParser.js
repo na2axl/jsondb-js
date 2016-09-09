@@ -490,7 +490,7 @@ QueryParser.prototype._parseLinkExtension = function (clause) {
  * to its true type.
  *
  * @param {*} value
- * @return {boolean|int|string|null}
+ * @return {boolean|int|string|object|Array|null}
  * @private
  */
 QueryParser.prototype._parseValue = function (value) {
@@ -504,7 +504,7 @@ QueryParser.prototype._parseValue = function (value) {
     } else if (!!~value.indexOf(':JSONDB::TO_NULL:') || value.toLowerCase() === 'null') {
         return null;
     } else if (!!~value.indexOf(':JSONDB::TO_ARRAY:')) {
-        return JSON.parse(this._parseValue(value.replace(':JSONDB::TO_ARRAY:', '')));
+        return require('./Util').unserialize(this._parseValue(value.replace(':JSONDB::TO_ARRAY:', '')));
     } else if (trim_value[0] === "'" && trim_value[trim_value.length - 1] === "'") {
         return trim_value.replace(/['"`()]/g, '').trim().replace(/\{\{quot}}|\{\{comm}}|\{\{dot}}|\{\{pto}}|\{\{ptc}}|\{\{semi}}/ig, function (c) {
             switch (c) {
