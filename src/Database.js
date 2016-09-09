@@ -536,9 +536,11 @@ Database.prototype._parseValue = function (value, properties) {
                 var link_table_data = this.getTableData(link_table_path);
                 value = this._parseValue(value, link_table_data.properties[link_info[1]]);
                 for ( var linkID in link_table_data.data ) {
-                    var data = link_table_data.data[linkID];
-                    if (data[link_info[1]] === value) {
-                        return linkID;
+                    if (link_table_data.data.hasOwnProperty(linkID)) {
+                        var data = link_table_data.data[linkID];
+                        if (data[link_info[1]] === value) {
+                            return linkID;
+                        }
                     }
                 }
                 throw new Error("JSONDB Error: There is no value \"" + value + "\" in any rows of the table \"" + link_info[0] + "\" at the column \"" + link_info[1] + "\".");
@@ -878,9 +880,24 @@ Database.prototype._insert = function (data) {
         };
     })(insert));
 
+    var last_ai = 0;
+    for (field in data.properties) {
+        if (data.properties.hasOwnProperty(field)) {
+            property = data.properties[field];
+            if (typeof property === 'object' && property.hasOwnProperty('auto_increment') && true === property.auto_increment) {
+                for (lid in insert) {
+                    if (insert.hasOwnProperty(lid)) {
+                        last_ai = Math.max(insert[lid][field], last_ai);
+                    }
+                }
+                break;
+            }
+        }
+    }
+
     data['data'] = insert;
     data['properties']['last_valid_row_id'] = this._getLastValidRowID(insert, false);
-    data['properties']['last_insert_id'] = ai_id;
+    data['properties']['last_insert_id'] = last_ai;
     data['properties']['last_link_id'] = lk_id;
 
     this.cache.update(this._getTablePath(), data);
