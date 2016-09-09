@@ -1,0 +1,8 @@
+.idea/
+.vs/
+.vscode/
+node_modules/
+typings/
+jsconfig.json
+JSONDB.njsproj
+JSONDB.sln
