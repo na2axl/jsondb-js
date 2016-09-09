@@ -355,5 +355,35 @@ Util.prototype.extends = function (child, parent) {
     return child;
 };
 
+Util.prototype.serialize = function (value) {
+    var ret;
+    if (Array.isArray(value)) {
+        ret = "[array][" + value.join(',') + "]";
+    } else if (typeof value === 'object') {
+        ret = "[object][" + JSON.stringify(value) + "]";
+    }
+    return ret;
+};
+
+/**
+ * Returns the value of a serialized string
+ * @param {string} string
+ * @return {object|Array}
+ */
+Util.prototype.unserialize = function (string) {
+    var ret;
+    var regexp = string.match(/^\[(\w+)]\[(.+)]$/);
+    var type = regexp[1];
+    var serialized = regexp[2];
+
+    if (type === 'array') {
+        ret = serialized.split(',');
+    } else if (type === 'object') {
+        ret = JSON.parse(serialized);
+    }
+
+    return ret;
+};
+
 // Exports the module
 module.exports = new Util();
