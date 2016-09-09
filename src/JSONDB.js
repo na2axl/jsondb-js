@@ -152,7 +152,7 @@ JSONDB.prototype.connect = function (server, username, password, database) {
  * @param {string} value
  * @return {string}
  */
-JSONDB.prototype.quote = function (value) {
+JSONDB.quote = function (value) {
     return require('./QueryParser').quote(value);
 };
 
