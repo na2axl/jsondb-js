@@ -12,7 +12,6 @@ language named **JQL** (**J**SONDB **Q**uery **L**anguage).
 * Database management with servers, databases and tables
 * Secure connections to servers with username and password
 * Easy custom query language
-* Object oriented, with a PDO-like syntax
 * Supported JQL queries:
     * select()
     * insert()
