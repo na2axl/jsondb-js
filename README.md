@@ -24,7 +24,7 @@ language named **JQL** (**J**SONDB **Q**uery **L**anguage).
 ## Getting Started
 _Full API and documentation will be soon available on the JSONDB website..._
 
-### Install using composer
+### Install using npm
 JSONDB can be installed through npm:
 ```sh
 $ npm install jsondb-js
