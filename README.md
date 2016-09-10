@@ -39,7 +39,7 @@ var jdb = new JSONDB();
 ### Create a server
 If you don't have created a server yet, then:
 ```javascript
-jdb.createServer('server_name, 'username', 'password');
+jdb.createServer('server_name', 'username', 'password');
 ```
 It's useful to check if the destination folder doesn't exist before create a server
 to avoid errors.
@@ -73,9 +73,9 @@ db.setDatabase('database_name');
 Once JSONDB is properly connected to a server and use a database, you can create
 a table in this database:
 ```javascript
-db.createTable('table_name', 'prototype');
+db.createTable('table_name', prototype);
 ```
-The `prototype` is an array of `column_name`: `column_propeties` pairs.
+The `prototype` is an object of `column_name`: `column_propeties` pairs.
 
 #### Column properties
 There is a list of currently supported column properties:
@@ -176,7 +176,7 @@ db.query("users.replace(" + pseudo + "," + pass + "," + mail + ").in(pseudo,pass
 ```
 Multiple replacement...
 ```javascript
-$db.query("users.replace(" + pseudo1 + "," + pass1 + "," + mail1 + ").and(" + pseudo2 + "," + pass2 + "," + mail2 + ").and(" + pseudo3 + "," + pass3 + "," + mail3 + ").in(pseudo,password,mail)");
+db.query("users.replace(" + pseudo1 + "," + pass1 + "," + mail1 + ").and(" + pseudo2 + "," + pass2 + "," + mail2 + ").and(" + pseudo3 + "," + pass3 + "," + mail3 + ").in(pseudo,password,mail)");
 ```
 
 ##### delete()
@@ -206,17 +206,17 @@ db.query("users.update(mail, password, activated, banished).with(" + mail + ", "
 ##### truncate()
 Reset the table `users`
 ```javascript
-$db.query("users.truncate()");
+db.query("users.truncate()");
 ```
 
 ##### count()
 Count all banished users
 ```javascript
-$db.query("users.count(*).as(banished_nb).where(banished = true)");
+db.query("users.count(*).as(banished_nb).where(banished = true)");
 ```
 Count all users and group by `activated`
 ```javascript
-$db.query("users.count(*).as(users_nb).group(activated)");
+db.query("users.count(*).as(users_nb).group(activated)");
 ```
 
 ## Full example
@@ -265,7 +265,7 @@ User.prototype.getInfo = function () {
     return "The user with ID: " + this.id + "has the name: " + this.name + " " + this.surname + " and the username " + this.pseudo + ".";
 };
 
-while (result = $results.fetch(JSONDB.FETCH_CLASS, User)) {
+while (result = results.fetch(JSONDB.FETCH_CLASS, User)) {
     console.log(result.getInfo());
 }
 ```
