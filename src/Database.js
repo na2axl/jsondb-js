@@ -556,8 +556,7 @@ Database.prototype._parseValue = function (value, properties) {
                     case 'float':
                         value = parseFloat(value);
                         if (properties.hasOwnProperty('max_length')) {
-                            // TODO: Find a way to limit decimals
-                            //value = (value, properties.max_length);
+                            value = value.toFixed(properties.max_length);
                         }
                         break;
 
