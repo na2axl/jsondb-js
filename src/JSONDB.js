@@ -25,18 +25,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @package	   JSONDB
- * @author	   Nana Axel
+ * @package    JSONDB
+ * @author     Nana Axel
  * @copyright  Copyright (c) 2016, Centers Technologies
- * @license	   http://opensource.org/licenses/MIT MIT License
+ * @license    http://opensource.org/licenses/MIT MIT License
  * @filesource
  */
 
 /**
  * Class JSONDB
  *
- * @package		JSONDB
- * @author		Nana Axel
+ * @package     JSONDB
+ * @author      Nana Axel
  */
 var JSONDB = function () { };
 
@@ -104,6 +104,7 @@ JSONDB.prototype.createServer = function (name, username, password, connect) {
     connect = connect || false;
 
     var _f = require('fs');
+    var mkdirp = require('mkdirp');
     var _p = require('path');
 
     var path = _p.normalize(_p.dirname(__dirname) + '/servers/' + name);
@@ -112,7 +113,9 @@ JSONDB.prototype.createServer = function (name, username, password, connect) {
             throw new Error("JSONDB Error: Can't create server \"" + path + "\", the directory already exists.");
         }
 
-        if (!_f.mkdirSync(path, 0x1ff) && !_f.lstatSync(path).isDirectory()) {
+        mkdirp.sync(path);
+
+        if (!_f.lstatSync(path).isDirectory()) {
             throw new Error("JSONDB Error: Can't create the server \"" + path + "\". Maybe you don't have write access.");
         }
 

@@ -218,6 +218,7 @@ Database.prototype.createDatabase = function (name) {
     }
 
     var _f = require('fs');
+    var mkdirp = require('mkdirp');
     var path = this._getDatabasePath(name);
 
     if (_f.existsSync(path)) {
@@ -225,7 +226,9 @@ Database.prototype.createDatabase = function (name) {
         throw new Error("Database Error: Can't create the database \"" + name + "\" in the server \"" + this.server + "\", the database already exist.");
     }
 
-    if (!_f.mkdirSync(path, 0x1ff) && !_f.lstatSync(path).isDirectory()) {
+    mkdirp.sync(path);
+    
+    if (!_f.lstatSync(path).isDirectory()) {
         this.benchmark.mark('Database_(createDatabase)_end');
         throw new Error("Database Error: Can't create the database \"" + name + "\" in the server \"" + this.server + "\".");
     }
