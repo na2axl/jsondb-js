@@ -385,5 +385,20 @@ Util.prototype.unserialize = function (string) {
     return ret;
 };
 
+/**
+ * Checks if the given path existsSync
+ * @param {string} path
+ * @return {boolean}
+ */
+Util.prototype.existsSync = function (path) {
+    var _f = require('fs');
+    try {
+        _f.statSync(path);
+        return true;
+    } catch (e) {
+        return false;
+    }
+};
+
 // Exports the module
 module.exports = new Util();

@@ -106,11 +106,12 @@ JSONDB.prototype.createServer = function (name, username, password, connect) {
     var _f = require('fs');
     var mkdirp = require('mkdirp');
     var _p = require('path');
+    var Util = require('./Util');
 
     var path = _p.normalize(_p.dirname(__dirname) + '/servers/' + name);
     if (null !== path && username !== null) {
-        if (_f.existsSync(path) && _f.lstatSync(path).isDirectory()) {
-            throw new Error("JSONDB Error: Can't create server \"" + path + "\", the directory already exists.");
+        if (Util.existsSync(path) && _f.lstatSync(path).isDirectory()) {
+            throw new Error("JSONDB Error: Can't create server \"" + path + "\", the directory already existsSync.");
         }
 
         mkdirp.sync(path);

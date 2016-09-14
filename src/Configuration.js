@@ -98,9 +98,9 @@ Configuration.prototype._writeConfig = function (filename, config) {
  * @return {boolean}
  */
 Configuration.prototype._exists = function (filename) {
-    var _f = require('fs');
+    var Util = require('./Util');
     var _p = require('path');
-    return _f.existsSync(_p.normalize(_p.dirname(_p.dirname(__filename)) + '/config/' + filename + '.json'));
+    return Util.existsSync(_p.normalize(_p.dirname(_p.dirname(__filename)) + '/config/' + filename + '.json'));
 };
 
 // Exports the module

@@ -218,10 +218,11 @@ Database.prototype.createDatabase = function (name) {
     }
 
     var _f = require('fs');
+    var Util = require('./Util');
     var mkdirp = require('mkdirp');
     var path = this._getDatabasePath(name);
 
-    if (_f.existsSync(path)) {
+    if (Util.existsSync(path)) {
         this.benchmark.mark('Database_(createDatabase)_end');
         throw new Error("Database Error: Can't create the database \"" + name + "\" in the server \"" + this.server + "\", the database already exist.");
     }
@@ -283,8 +284,9 @@ Database.prototype.createTable = function (name, prototype) {
 
     var table_path = this._getTablePath(name);
     var _f = require('fs');
+    var Util = require('./Util');
 
-    if (_f.existsSync(table_path)) {
+    if (Util.existsSync(table_path)) {
         this.benchmark.mark('Database_(createTable)_end');
         throw new Error("Database Error: Can't create the table \"" + name + "\" in the database \"" + this.database + "\". The table already exist.");
     }
@@ -324,7 +326,7 @@ Database.prototype.createTable = function (name, prototype) {
                     var link_info = link[1].split('.');
                     var link_table_path = this._getTablePath(link_info[0]);
 
-                    if (!_f.existsSync(link_table_path)) {
+                    if (!Util.existsSync(link_table_path)) {
                         throw new Error("Database Error: Can't create the table \"" + name + "\". An error occur when linking the column \"" + field + "\" with the column \"" + link[1] + "\", the table \"" + link_info[0] + "\" doesn't exist in the database \"" + this.database + "\".");
                     }
 
@@ -411,9 +413,10 @@ Database.prototype._execute = function () {
 
         var table_path = this._getTablePath();
         var _f = require('fs');
+        var Util = require('./Util');
 
-        if (!_f.existsSync(table_path)) {
-            throw new Error("Database Error: Can't execute the query. The table \"" + this.table + "\" doesn't exists in database \"" + this.database + "\" or file access denied.");
+        if (!Util.existsSync(table_path)) {
+            throw new Error("Database Error: Can't execute the query. The table \"" + this.table + "\" doesn't existsSync in database \"" + this.database + "\" or file access denied.");
         }
 
         var json_array = this.cache.get(table_path);
@@ -1333,7 +1336,7 @@ Database.prototype._filter = function (data, filters) {
             if (result.hasOwnProperty(lid)) {
                 var line = result[lid];
                 if (!line.hasOwnProperty(filter.field)) {
-                    throw new Error("JSONDB Error: The field \"" + filter.field + "\" doesn't exists in the table \"" + this.table + "\".");
+                    throw new Error("JSONDB Error: The field \"" + filter.field + "\" doesn't existsSync in the table \"" + this.table + "\".");
                 }
                 switch (filter['operator']) {
                     case '<':
