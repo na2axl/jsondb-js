@@ -1,0 +1,330 @@
+---
+layout: default
+title: "Getting Started with JSONDB | JSONDB Node.js Edition"
+menu: manual
+---
+<section id="main">
+    <div class="grid flush">
+        <div class="g12">
+            <section class="manual">
+                <header>
+                    <h2>Getting started with JSONDB</h2>
+                </header>
+                <div class="grid flush">
+                    <div class="g9">
+                        <article class="box manual-content">
+                            <div class="content">
+                                <section id="install">
+                                    <header>
+                                        <h3>Installation</h3>
+                                    </header>
+                                    <div class="content">
+                                        <p>JSONDB is installable through npm:</p>
+                                        <pre class="lang-bash"><code> npm install jsondb-js</code></pre>
+                                        <p>
+                                            You can also download JSONDB on github and install it yourself:
+                                            <a href="https://github.com/na2axl/jsondb-js" title="View the project on Github">JSONDB on Github</a>
+                                        </p>
+                                    </div>
+                                </section>
+                                <section id="instantiate">
+                                    <header>
+                                        <h3>Load JSONDB</h3>
+                                    </header>
+                                    <div class="content">
+                                        <pre class="lang-javascript line-numbers"><code>var JSONDB = require('jsondb-js');
+var jdb = new JSONDB();</code></pre>
+                                    </div>
+                                </section>
+                                <section id="create-server">
+                                    <header>
+                                        <h3>Create a server</h3>
+                                    </header>
+                                    <div class="content">
+                                        <p>When JSONDB is instantiated, you can connect to a server. If you haven't created a server, you can create it using <code class="lang-javascript">JSONDB::createServer()</code></p>
+                                        <pre class="lang-javascript line-numbers"><code>jdb.createServer('server_name', 'username', 'password', connect);</code></pre>
+                                        <p>The parameter <code class="lang-javascript">connect</code> is an <b>optional</b> boolean used to set if JSONDB have to be connected to the server after the creation. If it's set to <code class="lang-javascript">true</code>, you have to assign the returned connection handler to a variable:</p>
+                                        <pre class="lang-javascript line-numbers"><code>var database = jdb.createServer('server_name', 'username', 'password', true);</code></pre>
+										<p><b><u>Example:</u></b></p>
+                                        <pre class="lang-javascript line-numbers"><code>jdb.createServer('test_server', 'root', '');</code></pre>
+                                    </div>
+                                </section>
+                                <section id="connect-server">
+                                    <header>
+                                        <h3>Connect to a server</h3>
+                                    </header>
+                                    <div class="content">
+                                        <p>Once instantiated, you have to connect to a server before send queries.</p>
+                                        <pre class="lang-javascript line-numbers"><code>var db = jdb.connect('server_name', 'username', 'password', 'database_name');</code></pre>
+                                        <ul class="default">
+                                            <li>The <code class="lang-javascript">'server_name'</code> is the name to the server. The server have to be created before with <code class="lang-javascript">JSONDB::createServer()</code></li>
+                                            <li>The <code class="lang-javascript">'username'</code> and the <code class="lang-javascript">'password'</code> are the information used to connect to the database. These information are the same used when creating the server</li>
+                                            <li>The <code class="lang-javascript">'database_name'</code> is the name of the database to use with current connection. This parameter is optional and can be set manually later.</li>
+                                        </ul>
+										<p><b><u>Example:</u></b></p>
+										<pre class="lang-javascript line-numbers"><code>var db = jdb.connect('test_server', 'root', '');</code></pre>
+                                    </div>
+                                </section>
+                                <section id="create-database">
+                                    <header>
+                                        <h3>Create a database</h3>
+                                    </header>
+                                    <div class="content">
+                                        <p>After connected to server, you can create a database:</p>
+                                        <pre class="lang-javascript line-numbers"><code>db.createDatabase('database_name');</code></pre>
+										<p>Your new database will be a folder in your server in which each table will be a <i>.json</i> file.</p>
+										<p><b><u>Example:</u></b></p>
+										<pre class="lang-javascript line-numbers"><code>db.createDatabase('test_database');</code></pre>
+                                    </div>
+                                </section>
+								<section id="use-database">
+									<header>
+										<h3>Use a database</h3>
+									</header>
+									<div class="content">
+										<p>To use a database, you can specify his name when connecting to a server, or use <code class="lang-javascript">JSONDB::setDatabase()</code> after a connection:</p>
+										<pre class="lang-javascript line-numbers"><code>db.setDatabase('database_name')</code></pre>
+										<p><b><u>Example:</u></b></p>
+										<pre class="lang-javascript line-numbers"><code>db.setDatabase('test_database');</code></pre>
+									</div>
+								</section>
+								<section id="create-table">
+									<header>
+										<h3>Create a table</h3>
+									</header>
+									<div class="content">
+										<p>Once JSONDB is connected to a server and use a database, you can create a new table with <code class="lang-javascript">JSONDB::createTable()</code>:</p>
+										<pre class="lang-javascript line-numbers"><code>db.createTable('table_name', prototype);</code></pre>
+										<p>The <code class="lang-javascript">prototype</code> is an array of <code class="lang-javascript">'column_name'</code> => <code class="lang-javascript">column_properties</code> pairs. Each <code class="lang-javascript">column_properties</code> are also an object which contains a list of <code class="lang-javascript">'property_name'</code> => <code class="lang-javascript">'property_value'</code> pairs.</p>
+										<p>There is a list of currently supported column properties:</p>
+                                        <ul class="default">
+                                            <li>
+                                                <code class="lang-javascript">'type'</code>: Defines the type of values that the column accepts. This property can take only <b>one value</b>. Supported types are:
+                                                <ul class="circle">
+                                                    <li><code class="lang-javascript">'int'</code>, <code class="lang-javascript">'integer'</code>, <code class="lang-javascript">'number'</code></li>
+                                                    <li><code class="lang-javascript">'decimal'</code>, <code class="lang-javascript">'float'</code></li>
+                                                    <li><code class="lang-javascript">'string'</code></li>
+                                                    <li><code class="lang-javascript">'char'</code></li>
+                                                    <li><code class="lang-javascript">'bool'</code>, <code class="lang-javascript">'boolean'</code></li>
+                                                    <li><code class="lang-javascript">'array'</code></li>
+                                                </ul>
+                                            </li>
+                                            <li><code class="lang-javascript">'default'</code>: Sets the default value of column. The default value must be match the <code class="lang-javascript">'type'</code> of the column.</li>
+                                            <li>
+                                                <code class="lang-javascript">'max_length'</code>: Used by some type:
+                                                <ul class="circle">
+                                                    <li>When used with <code class="lang-javascript">'float'</code>, the number of decimals is reduced to his value</li>
+                                                    <li>When used with <code class="lang-javascript">'string'</code>, the number of characters is reduced to his value (starting with the first character)</li>
+                                                </ul>
+                                            </li>
+                                            <li><code class="lang-javascript">'not_null'</code>: Can take values <code class="lang-javascript">true</code> or <code class="lang-javascript">false</code>. Defines if a column have to be set to null when there is no value in the row. Doesn't work when a <code class="lang-javascript">'default'</code> value is given</li>
+                                            <li><code class="lang-javascript">'auto_increment'</code>: Can take values <code class="lang-javascript">true</code> or <code class="lang-javascript">false</code>. Defines if a column will be an auto incremented column. When used, the column is automatically set to UNIQUE KEY</li>
+                                            <li><code class="lang-javascript">'primary_key'</code>: Can take values <code class="lang-javascript">true</code> or <code class="lang-javascript">false</code>. Defines if a column is a PRIMARY KEY</li>
+                                            <li><code class="lang-javascript">'unique_key'</code>: Can take values <code class="lang-javascript">true</code> or <code class="lang-javascript">false</code>. Defines if a column is an UNIQUE KEY</li>
+                                        </ul>
+										<p><b><u>Example:</u></b></p>
+										<pre class="lang-javascript line-numbers"><code>db.createTable('users', {id: {type: 'int', auto_increment: true},
+                         name: {type: 'string', max_length: 30, not_null: true},
+                         surname: {type: 'string', max_length: 30, not_null: true},
+                         pseudo: {type: 'string', max_length: 15, unique_key: true},
+                         mail: {type: 'string', unique_key: true},
+                         password: {type: 'string', not_null: true},
+                         website: {type: 'string'},
+                         activated: {type: 'bool', 'default': false},
+                         banished: {type: 'bool', 'default': false}});</code></pre>
+									</div>
+								</section>
+								<section id="send-query">
+									<header>
+										<h3>Send a query</h3>
+									</header>
+									<div class="content">
+										<p>JSONDB can send both direct and prepared queries.</p>
+										<h4>Direct queries</h4>
+										<pre class="lang-javascript line-numbers"><code>var results = db.query('my_query_string');
+
+//// Specially for select() queries
+// You can change the fetch mode
+results.setFetchMode(JSONDB.FETCH_ARRAY);
+// or...
+results.setFetchMode(JSONDB.FETCH_CLASS, MyCustomClass);
+// Explore results using a while loop
+while (result = results.fetch()) {
+    // Do stuff...
+}</code></pre>
+									<h4>Prepared queries</h4>
+									<pre class="lang-javascript line-numbers"><code>var query = db.prepare('my_prepared_query');
+query.bindValue(':key1', val1, JSONDB.PARAM_INT);
+query.bindValue(':key2', val2, JSONDB.PARAM_STRING);
+query.bindValue(':key3', val3, JSONDB.PARAM_BOOL);
+query.bindValue(':key4', val4, JSONDB.PARAM_NULL);
+query.bindValue(':key5', val5, JSONDB.PARAM_ARRAY);
+var results = query.execute();
+
+//// Specially for select() queries
+// You can change the fetch mode
+results.setFetchMode(JSONDB.FETCH_OBJECT);
+// or...
+results.setFetchMode(JSONDB.FETCH_CLASS, MyCustomClass);
+// Explore results using a while loop
+while (result = results.fetch()) {
+    // Do stuff...
+}</code></pre>
+									<p>JSONDB support a lot of common database queries, and use JQL, a custom query language...</p>
+									</div>
+								</section>
+								<section id="learn-jql">
+									<header>
+										<h3>JQL (JSONDB Query Language)</h3>
+									</header>
+									<div class="content">
+										<p><b>JQL</b> is the query language used by JSONDB to send queries. It's a very easy language based on <i>extensions</i>. A JQL query is in this form:</p>
+										<pre class="lang-javascript line-numbers"><code>db.query('table_name.query(parameters, ...).extensions(parameters, ...)...');</code></pre>
+										<p><b><u>Query example with <i>select()</i>:</u></b></p>
+										<pre class="lang-javascript line-numbers"><code>// Select all from table `users` where `pseudo` = id and `password` = pass or where `mail` = id and `password` = pass
+var id = JSONDB.quote(form_data.id);
+var pass = JSONDB.quote(form_data.password);
+db.query('users.select(*).where(pseudo=' + id + ',password=' + pass + ').where(mail=' + id + ',password=' + pass + ')');
+
+// Select `pseudo` and `mail` from table `users` where `activated` = true, order the results by `pseudo` with `desc`endant method, limit the results to the 10 users after the 5th.
+db.query("users.select(pseudo, mail).where(activated = true).order(pseudo, desc).limit(5, 10)");</code></pre>
+										<p><b><u>Query example with <i>insert()</i>:</u></b></p>
+										<pre class="lang-javascript line-numbers"><code>// Insert a new user in table `users`
+var pseudo = JSONDB.quote(form_data.pseudo);
+var pass = JSONDB.quote(form_data.pass);
+var mail = JSONDB.quote(form_data.mail);
+db.query('users.insert(' + pseudo + ',' + pass + ',' + mail + ').in(pseudo,password,mail)');
+
+// Multiple insertion...
+db.query('users.insert(' + pseudo1 + ',' + pass1 + ',' + mail1 + ').and(' + pseudo2 + ',' + pass2 + ',' + mail2 + ').and(' + pseudo3 + ',' + pass3 + ',' + mail3 + ').in(pseudo,password,mail)');</code></pre>
+										<p><b><u>Query example with <i>replace()</i>:</u></b></p>
+										<pre class="lang-javascript line-numbers"><code>// Replace information of the first user
+db.query('users.replace(' + pseudo + ',' + pass + ',' + mail + ').in(pseudo,password,mail)');
+
+// Multiple replacement...
+db.query('users.replace(' + pseudo1 + ',' + pass1 + ',' + mail1 + ').and(' + pseudo2 + ',' + pass2 + ',' + mail2 + ').and(' + pseudo3 + ',' + pass3 + ',' + mail3 + ').in(pseudo,password,mail)');</code></pre>
+										<p><b><u>Query example with <i>delete()</i>:</u></b></p>
+										<pre class="lang-javascript line-numbers"><code>// Delete all users
+db.query("users.delete()");
+
+// Delete all banished users
+db.query("users.delete().where(banished = true)");
+
+// Delete a specific user
+db.query('users.delete().where(pseudo = ' + pseudo + ', mail = ' + mail + ')');</code></pre>
+										<p><b><u>Query example with <i>update()</i>:</u></b></p>
+										<pre class="lang-javascript line-numbers"><code>// Activate all users
+db.query("users.update(activated).with(true)");
+
+// Update my information ;-)
+db.query('users.update(mail, password, activated, banished).with(' + mail + ', ' + pseudo + ', true, false).where(pseudo = \'na2axl\')');</code></pre>
+										<p><b><u>Query example with <i>count()</i>:</u></b></p>
+										<pre class="lang-javascript line-numbers"><code>// Count all `banished` users
+db.query("users.count(*).as(banished_nb).where(banished = true)");
+
+// Count all users and group by `activated`
+db.query("users.count(*).as(users_nb).group(activated)");</code></pre>
+										<p><b><u>Query example with <i>truncate()</i>:</u></b></p>
+										<pre class="lang-javascript line-numbers"><code>// Reset the table `users`
+db.query("users.truncate()");</code></pre>
+									</div>
+								</section>
+								<section id="full-example">
+									<header>
+										<h3>Full example</h3>
+									</header>
+									<div class="content">
+										<pre class="lang-js line-numbers"><code>var JSONDB = require('jsondb-js');
+var jdb = new JSONDB();
+
+var db = jdb.createServer('test_server', 'root', '', true);
+
+db.createDatabase('test_database').setDatabase('test_database'); // Yes, is chainable ! ;-)
+
+db.createTable('users', {id: {type: 'int', auto_increment: true},
+                         name: {type: 'string', max_length: 30, not_null: true},
+                         surname: {type: 'string', max_length: 30, not_null: true},
+                         pseudo: {type: 'string', max_length: 15, unique_key: true},
+                         mail: {type: 'string', unique_key: true},
+                         password: {type: 'string', not_null: true},
+                         website: {type: 'string'},
+                         activated: {type: 'bool', 'default': false},
+                         banished: {type: 'bool', 'default': false}});
+
+// A prepared query
+var query = db.prepare('users.insert(:name, :sname, :pseudo, :mail, :pass).in(name, surname, pseudo, mail, password)');
+query.bindValue(':name', 'Nana', JSONDB.PARAM_STRING);
+query.bindValue(':sname', 'Axel', JSONDB.PARAM_STRING);
+query.bindValue(':pseudo', 'na2axl', JSONDB.PARAM_STRING);
+query.bindValue(':mail', 'ax.lnana@outlook.com', JSONDB.PARAM_STRING);
+query.bindValue(':pass', '00@a&COmpLEx%PASssworD$00', JSONDB.PARAM_STRING);
+query.execute();
+
+// After some insertions...
+
+// Select all users
+var results = db.query('users.select(id, name, surname, pseudo)');
+// Fetch with class mapping
+var User = function () { };
+User.prototype.id = 0;
+User.prototype.name = '';
+User.prototype.surname = '';
+User.prototype.pseudo = '';
+User.prototype.getInfo = function () {
+    return "The user with id: " + this.id + " has the name: " + this.name + " " + this.surname + " and the pseudo: " + this.pseudo + ".";
+};
+while (result = results.fetch(JSONDB.FETCH_CLASS, User)) {
+    console.log(result.getInfo());
+}
+
+// All done! Disconnect from the server...
+db.disconnect();</code></pre>
+									</div>
+								</section>
+							</div>
+                        </article>
+                    </div>
+                    <div class="g3 hide(phone) hide(tablet-narrow)">
+                        <aside class="summary scrollspy">
+                            <nav>
+                                <ul>
+                                    <li data-scrollspy-for="#install" class="active"><a href="#install" data-scrollspy-for="#install" class="scrollTo">Installation</a></li>
+                                    <li data-scrollspy-for="#instantiate"><a href="#instantiate" data-scrollspy-for="#instantiate" class="scrollTo">Load JSONDB</a></li>
+                                    <li data-scrollspy-for="#create-server"><a href="#create-server" data-scrollspy-for="#create-server" class="scrollTo">Create a server</a></li>
+                                    <li data-scrollspy-for="#connect-server"><a href="#connect-server" data-scrollspy-for="#connect-server" class="scrollTo">Connect to a server</a></li>
+                                    <li data-scrollspy-for="#create-database"><a href="#create-database" data-scrollspy-for="#create-database" class="scrollTo">Create a database</a></li>
+                                    <li data-scrollspy-for="#use-database"><a href="#use-database" data-scrollspy-for="#use-database" class="scrollTo">Use a database</a></li>
+                                    <li data-scrollspy-for="#create-table"><a href="#create-table" data-scrollspy-for="#create-table" class="scrollTo">Create a table</a></li>
+                                    <li data-scrollspy-for="#send-query"><a href="#send-query" data-scrollspy-for="#send-query" class="scrollTo">Send a query</a></li>
+                                    <li data-scrollspy-for="#learn-jql"><a href="#learn-jql" data-scrollspy-for="#learn-jql" class="scrollTo">JQL</a></li>
+                                    <li data-scrollspy-for="#full-example"><a href="#full-example" data-scrollspy-for="#full-example" class="scrollTo">Full example</a></li>
+                                </ul>
+                            </nav>
+                        </aside>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+    <div class="grid double" id="scrollspy-limit">
+        <div class="g12">
+            <section class="links">
+                <div class="grid quarter">
+                    <div class="g12">
+                        <article class="box full">
+                            <header>
+                                <h3><a href="{{ site.github.url }}/docs/api">Go further with the API</a></h3>
+                            </header>
+                            <div class="content">
+                                Classes, methods, properties, all information about JSONDB and JQL here!
+                            </div>
+                            <footer>
+                                <a href="{{ site.github.url }}/docs/api" class="open fa fa-external-link"></a>
+                            </footer>
+                        </article>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</section>

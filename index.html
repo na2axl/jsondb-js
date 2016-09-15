@@ -1,0 +1,120 @@
+---
+layout: default
+title: "JSONDB Node.js Edition | Manage JSON files as databases with JSONDB Query Language (JQL)"
+menu: "home"
+---
+<section id="main">
+    <div class="grid flush">
+        <div class="g12">
+            <section class="welcome featured">
+                <header>
+                    Manage JSON files as databases with JSONDB Query Language (JQL)
+                </header>
+                <div class="grid quarter">
+                    <div class="g4">
+                        <article class="box">
+                            <header>
+                                <h3 class="fa fa-dashboard">Performance</h3>
+                            </header>
+                            <div class="content">
+                                Data are stored locally, then retrieved more quickly than a distant database.
+                            </div>
+                        </article>
+                    </div>
+                    <div class="g4">
+                        <article class="box">
+                            <header>
+                                <h3 class="fa fa-database">JQL</h3>
+                            </header>
+                            <div class="content">
+                                Manage all your databases with JQL, a query language designed for JSONDB.
+                            </div>
+                        </article>
+                    </div>
+                    <div class="g4">
+                        <article class="box">
+                            <header>
+                                <h3 class="fa fa-code">PDO-like syntax</h3>
+                            </header>
+                            <div class="content">
+                                Don't want to learn another boring syntax? Don't worry, use JSONDB like PDO!
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+    <div class="grid double">
+        <div class="g12">
+            <section class="demo">
+                <header>
+                    <h2>Do more with a <em>.json</em> file...</h2>
+                </header>
+                <article class="box full">
+                    <div class="content">
+                        <pre class="lang-javascript line-numbers"><code>var JSONDB = require('jsondb-js');
+var jdb = new JSONDB();
+var database = jdb.connect('server_name', 'username', 'password', 'db_name');
+var results = database.query("table_name.select(*).where(foo = 'hello', bar = 'world')");
+while (result = results.fetch()) {
+    console.log(result.foo + ' ' + result.bar);
+}
+database.disconnect();</code></pre>
+                    </div>
+                </article>
+            </section>
+        </div>
+    </div>
+    <div class="grid double">
+        <div class="g12">
+            <section class="links">
+                <header>
+                    <h2>What next ?</h2>
+                </header>
+                <div class="grid quarter">
+                    <div class="g12">
+                        <article class="box full">
+                            <header>
+                                <h3>Install</h3>
+                            </header>
+                            <div class="content">
+                                <pre class="lang-bash"><code>$ npm install jsondb-js</code></pre>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="grid quarter">
+                    <div class="g12">
+                        <article class="box full">
+                            <header>
+                                <h3><a href="{{ site.github.url }}/docs/manual">Get started</a></h3>
+                            </header>
+                            <div class="content">
+                                Learn how to get started with JSONDB and JQL here!
+                            </div>
+                            <footer>
+                                <a href="{{ site.github.url }}/docs/manual" class="open fa fa-external-link"></a>
+                            </footer>
+                        </article>
+                    </div>
+                </div>
+                <div class="grid quarter">
+                    <div class="g12">
+                        <article class="box full">
+                            <header>
+                                <h3><a href="{{ site.github.url }}/docs/api">Go further with the API</a></h3>
+                            </header>
+                            <div class="content">
+                                Classes, methods, properties, all information about JSONDB and JQL here!
+                            </div>
+                            <footer>
+                                <a href="{{ site.github.url }}/docs/api" class="open fa fa-external-link"></a>
+                            </footer>
+                        </article>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</section>

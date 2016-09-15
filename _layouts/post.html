@@ -1,0 +1,41 @@
+---
+layout: default
+menu: "blog"
+---
+<section id="main">
+    <div class="grid">
+        <div class="g12">
+            <section class="blog post">
+                <header>
+                    <h2>{{ page.title }}</h2>
+                    <span class="meta">{{ page.date | date_to_string }}</span>
+                </header>
+                <article class="box">
+                    <div class="content">
+                        {{ content }}
+                    </div>
+                </article>
+            </section>
+        </div>
+    </div>
+    <div class="grid">
+        <div class="g12">
+            <section class="blog comments">
+                <div id="disqus_thread"></div>
+                <script>
+                     var disqus_config = function () {
+                     this.page.url = "{{ site.github.url }}/{{ page.url }}";  // Replace PAGE_URL with your page's canonical URL variable
+                     this.page.identifier = "{{ page.id }}"; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                     };
+                    (function() { // DON'T EDIT BELOW THIS LINE
+                        var d = document, s = d.createElement('script');
+                        s.src = '//jsondb-php.disqus.com/embed.js';
+                        s.setAttribute('data-timestamp', +new Date());
+                        (d.head || d.body).appendChild(s);
+                    })();
+                </script>
+                <noscript>Please enable JavaScript to view the comments of this post.</noscript>
+            </section>
+        </div>
+    </div>
+</section>
