@@ -1,11 +1,11 @@
 ---
 layout: api_class
-title: "Class QueryResult | JSONDB API Documentation | JSONDB PHP Edition"
+title: "Class QueryResult | JSONDB API Documentation | JSONDB Node.js Edition"
 menu: api
 ---
 <div class="content">
     <header class="intro">
-        <h2><small>\JSONDB\</small>QueryResult</h2>
+        <h2>QueryResult</h2>
         <p><em>Class QueryResult</em></p>
     </header>
 
@@ -19,25 +19,13 @@ menu: api
                         <tr><td><a href="#methods">Methods</a></td></tr>
                         </thead>
                         <tbody>
-                        <tr><td><a href="#method___construct" class="public">__construct()</a></td></tr>
-                        <tr><td><a href="#method_valid" class="public">valid()</a></td></tr>
+                        <tr><td><a href="#method_QueryResult" class="public">QueryResult()</a></td></tr>
                         <tr><td><a href="#method_queryString" class="public">queryString()</a></td></tr>
                         <tr><td><a href="#method_current" class="public">current()</a></td></tr>
-                        <tr><td><a href="#method_next" class="public">next()</a></td></tr>
-                        <tr><td><a href="#method_key" class="public">key()</a></td></tr>
-                        <tr><td><a href="#method_rewind" class="public">rewind()</a></td></tr>
-                        <tr><td><a href="#method_seek" class="public">seek()</a></td></tr>
-                        <tr><td><a href="#method_count" class="public">count()</a></td></tr>
-                        <tr><td><a href="#method_serialize" class="public">serialize()</a></td></tr>
-                        <tr><td><a href="#method_unserialize" class="public">unserialize()</a></td></tr>
-                        <tr><td><a href="#method_offsetExists" class="public">offsetExists()</a></td></tr>
-                        <tr><td><a href="#method_offsetGet" class="public">offsetGet()</a></td></tr>
-                        <tr><td><a href="#method_offsetSet" class="public">offsetSet()</a></td></tr>
-                        <tr><td><a href="#method_offsetUnset" class="public">offsetUnset()</a></td></tr>
                         <tr><td><a href="#method_fetch" class="public">fetch()</a></td></tr>
                         <tr><td><a href="#method_setFetchMode" class="public">setFetchMode()</a></td></tr>
                         <tr><td><a href="#method__setResults" class="private">_setResults()</a></td></tr>
-                        <tr><td><a href="#method__parseResults" class="private-">memory_usage()</a></td></tr>
+                        <tr><td><a href="#method__parseResults" class="private-">_parseResults()</a></td></tr>
                         </tbody>
                     </table>
                 </section>
@@ -49,11 +37,11 @@ menu: api
                         <tr><td><a href="#properties">Properties</a></td></tr>
                         </thead>
                         <tbody>
-                        <tr><td><a href="#property_key" class="private">$key</a></td></tr>
-                        <tr><td><a href="#property_results" class="private">$results</a></td></tr>
-                        <tr><td><a href="#property_fetchmode" class="private">$fetchMode</a></td></tr>
-                        <tr><td><a href="#property_classname" class="private">$className</a></td></tr>
-                        <tr><td><a href="#property_database" class="private">$database</a></td></tr>
+                        <tr><td><a href="#property_key" class="private">key</a></td></tr>
+                        <tr><td><a href="#property_results" class="private">results</a></td></tr>
+                        <tr><td><a href="#property_fetchmode" class="private">fetchMode</a></td></tr>
+                        <tr><td><a href="#property_classname" class="private">className</a></td></tr>
+                        <tr><td><a href="#property_database" class="private">database</a></td></tr>
                         </tbody>
                     </table>
                 </section>
@@ -74,8 +62,8 @@ menu: api
         <div class="grid quarter">
             <div class="g12">
                 <article>
-                    <h4>Implements</h4>
-                    <p>\Iterator, \SeekableIterator,  \Countable, \Serializable, \ArrayAccess</p>
+                    <h4>Extends</h4>
+                    <p>Array</p>
                 </article>
             </div>
         </div>
@@ -87,9 +75,9 @@ menu: api
             <div class="g12">
                 <article id="property_key" class="property">
                     <header>
-                        <h4 class="private">$key</h4>
+                        <h4 class="private">key</h4>
                     </header>
-                    <pre class="signature">$key : integer</pre>
+                    <pre class="signature">key : number</pre>
                     <table>
                         <tbody>
                         <tr>
@@ -98,16 +86,16 @@ menu: api
                         </tr>
                         <tr>
                             <td><b>Type</b></td>
-                            <td><i>integer</i></td>
+                            <td><i>number</i></td>
                         </tr>
                         </tbody>
                     </table>
                 </article>
                 <article id="property_results" class="property">
                     <header>
-                        <h4 class="private">$results</h4>
+                        <h4 class="private">results</h4>
                     </header>
-                    <pre class="signature">$results : array</pre>
+                    <pre class="signature">results : Array</pre>
                     <table>
                         <tbody>
                         <tr>
@@ -123,9 +111,9 @@ menu: api
                 </article>
                 <article id="property_fetchmode" class="property">
                     <header>
-                        <h4 class="private">$fetchMode</h4>
+                        <h4 class="private">fetchMode</h4>
                     </header>
-                    <pre class="signature">$fetchMode : integer</pre>
+                    <pre class="signature">fetchMode : number</pre>
                     <table>
                         <tbody>
                         <tr>
@@ -134,16 +122,16 @@ menu: api
                         </tr>
                         <tr>
                             <td><b>Type</b></td>
-                            <td><i>integer</i></td>
+                            <td><i>number</i></td>
                         </tr>
                         </tbody>
                     </table>
                 </article>
                 <article id="property_classname" class="property">
                     <header>
-                        <h4 class="private">$className</h4>
+                        <h4 class="private">className</h4>
                     </header>
-                    <pre class="signature">$className : string</pre>
+                    <pre class="signature">className : string</pre>
                     <table>
                         <tbody>
                         <tr>
@@ -159,9 +147,9 @@ menu: api
                 </article>
                 <article id="property_database" class="property">
                     <header>
-                        <h4 class="private">$database</h4>
+                        <h4 class="private">database</h4>
                     </header>
-                    <pre class="signature">$database : \JSONDB\Database</pre>
+                    <pre class="signature">database : Database</pre>
                     <table>
                         <tbody>
                         <tr>
@@ -170,7 +158,7 @@ menu: api
                         </tr>
                         <tr>
                             <td><b>Type</b></td>
-                            <td><a href="{{ site.github.url }}/docs/api/jsondb/Database.html"><i>\JSONDB\Database</i></a></td>
+                            <td><a href="{{ site.github.url }}/docs/api/jsondb/Database.html"><i>Database</i></a></td>
                         </tr>
                         </tbody>
                     </table>
@@ -183,43 +171,28 @@ menu: api
         <h3>Methods</h3>
         <div class="grid quarter">
             <div class="g12">
-                <article id="method___construct" class="method">
+                <article id="method_QueryResult" class="method">
                     <header>
-                        <h4 class="public">__construct()</h4>
+                        <h4 class="public">QueryResult()</h4>
                     </header>
-                    <pre class="signature">__construct(array  <span class="argument">$result</span>, \JSONDB\Database  <span class="argument">$database</span>)</pre>
-                    <p><em>QueryResult __constructor.</em></p>
+                    <pre class="signature">QueryResult(Array  <span class="argument">result</span>, Database  <span class="argument">database</span>)</pre>
+                    <p><em>QueryResult constructor.</em></p>
                     <section>
                         <h5>Parameters</h5>
                         <table>
                             <tbody>
                             <tr>
-                                <td><b>array</b></td>
-                                <td><code>$result</code></td>
+                                <td><b>Array</b></td>
+                                <td><code>result</code></td>
                                 <td><i>The query results to use</i></td>
                             </tr>
                             <tr>
-                                <td><a href="{{ site.github.url }}/docs/api/jsondb/Database.html"><b>\JSONDB\Database</b></a></td>
-                                <td><code>$database</code></td>
+                                <td><a href="{{ site.github.url }}/docs/api/jsondb/Database.html"><b>Database</b></a></td>
+                                <td><code>database</code></td>
                                 <td><i>The class Database instance to use</i></td>
                             </tr>
                             </tbody>
                         </table>
-                    </section>
-                </article>
-                <article id="method_valid" class="method">
-                    <header>
-                        <h4 class="public">valid()</h4>
-                    </header>
-                    <pre class="signature">valid() : boolean</pre>
-                    <p><em>Checks if the current key can be accessed.</em></p>
-                    <section>
-                        <h5>Overwrites</h5>
-                        <p>\Iterator</p>
-                    </section>
-                    <section>
-                        <h5>Returns</h5>
-                        <p>boolean</p>
                     </section>
                 </article>
                 <article id="method_queryString" class="method">
@@ -237,7 +210,7 @@ menu: api
                     <header>
                         <h4 class="public">current()</h4>
                     </header>
-                    <pre class="signature">current() : array|object|\JSONDB\QueryResultObject</pre>
+                    <pre class="signature">current() : Array|object</pre>
                     <p><em>Returns the current result.</em></p>
                     <section>
                         <h5>Overwrites</h5>
@@ -245,11 +218,11 @@ menu: api
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p>Error</p>
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p>array|object|<a href="{{ site.github.url }}/docs/api/jsondb/QueryResultObject.html">\JSONDB\QueryResultObject</a></p>
+                        <p>object|object|<a href="{{ site.github.url }}/docs/api/jsondb/QueryResultObject.html">QueryResultObject</a></p>
                     </section>
                 </article>
                 <article id="method_next" class="method">
@@ -257,7 +230,7 @@ menu: api
                         <h4 class="public">next()</h4>
                     </header>
                     <pre class="signature">next()</pre>
-                    <p><em>Seeks the internal array pointer to the next value.</em></p>
+                    <p><em>Seeks the internal object pointer to the next value.</em></p>
                     <section>
                         <h5>Overwrites</h5>
                         <p>\Iterator</p>
@@ -267,15 +240,15 @@ menu: api
                     <header>
                         <h4 class="public">key()</h4>
                     </header>
-                    <pre class="signature">key() : integer</pre>
-                    <p><em>Returns the value of the current internal array pointer.</em></p>
+                    <pre class="signature">key() : number</pre>
+                    <p><em>Returns the value of the current internal object pointer.</em></p>
                     <section>
                         <h5>Overwrites</h5>
                         <p>\Iterator</p>
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p>integer</p>
+                        <p>number</p>
                     </section>
                 </article>
                 <article id="method_rewind" class="method">
@@ -283,7 +256,7 @@ menu: api
                         <h4 class="public">rewind()</h4>
                     </header>
                     <pre class="signature">rewind()</pre>
-                    <p><em>Seeks the internal array pointer to 0.</em></p>
+                    <p><em>Seeks the internal object pointer to 0.</em></p>
                     <section>
                         <h5>Overwrites</h5>
                         <p>\Iterator</p>
@@ -293,22 +266,22 @@ menu: api
                     <header>
                         <h4 class="public">seek()</h4>
                     </header>
-                    <pre class="signature">seek(integer  <span class="argument">$position</span>)</pre>
-                    <p><em>Seeks the internal array pointer to the given position.</em></p>
+                    <pre class="signature">seek(number  <span class="argument">position</span>)</pre>
+                    <p><em>Seeks the internal object pointer to the given position.</em></p>
                     <section>
                         <h5>Overwrites</h5>
                         <p>\SeekableIterator</p>
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p>Error</p>
                     </section>
                 </article>
                 <article id="method_count" class="method">
                     <header>
                         <h4 class="public">count()</h4>
                     </header>
-                    <pre class="signature">count() : integer</pre>
+                    <pre class="signature">count() : number</pre>
                     <p><em>Counts results.</em></p>
                     <section>
                         <h5>Overwrites</h5>
@@ -316,7 +289,7 @@ menu: api
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p>integer</p>
+                        <p>number</p>
                     </section>
                 </article>
                 <article id="method_serialize" class="method">
@@ -338,7 +311,7 @@ menu: api
                     <header>
                         <h4 class="public">unserialize()</h4>
                     </header>
-                    <pre class="signature">unserialize(string  <span class="argument">$serialized</span>) : \JSONDB\QueryResult</pre>
+                    <pre class="signature">unserialize(string  <span class="argument">serialized</span>) : QueryResult</pre>
                     <p><em>Unserializes a serialized value.</em></p>
                     <section>
                         <h5>Overwrites</h5>
@@ -350,7 +323,7 @@ menu: api
                             <tbody>
                             <tr>
                                 <td><b>string</b></td>
-                                <td><code>$serialized</code></td>
+                                <td><code>serialized</code></td>
                                 <td><i>The serialized value</i></td>
                             </tr>
                             </tbody>
@@ -358,14 +331,14 @@ menu: api
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/QueryResult.html">\JSONDB\QueryResult</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/QueryResult.html">QueryResult</a></p>
                     </section>
                 </article>
                 <article id="method_offsetExists" class="method">
                     <header>
                         <h4 class="public">offsetExists()</h4>
                     </header>
-                    <pre class="signature">offsetExists(integer  <span class="argument">$offset</span>) : boolean</pre>
+                    <pre class="signature">offsetExists(number  <span class="argument">offset</span>) : boolean</pre>
                     <p><em>Checks if a result exist at the given offset.</em></p>
                     <section>
                         <h5>Overwrites</h5>
@@ -376,8 +349,8 @@ menu: api
                         <table>
                             <tbody>
                             <tr>
-                                <td><b>integer</b></td>
-                                <td><code>$offset</code></td>
+                                <td><b>number</b></td>
+                                <td><code>offset</code></td>
                                 <td></td>
                             </tr>
                             </tbody>
@@ -392,7 +365,7 @@ menu: api
                     <header>
                         <h4 class="public">offsetGet()</h4>
                     </header>
-                    <pre class="signature">offsetGet(integer  <span class="argument">$offset</span>) : array</pre>
+                    <pre class="signature">offsetGet(number  <span class="argument">offset</span>) : object</pre>
                     <p><em>Returns the result at the given offset.</em></p>
                     <section>
                         <h5>Overwrites</h5>
@@ -403,8 +376,8 @@ menu: api
                         <table>
                             <tbody>
                             <tr>
-                                <td><b>integer</b></td>
-                                <td><code>$offset</code></td>
+                                <td><b>number</b></td>
+                                <td><code>offset</code></td>
                                 <td></td>
                             </tr>
                             </tbody>
@@ -412,18 +385,18 @@ menu: api
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p>Error</p>
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p>array</p>
+                        <p>object</p>
                     </section>
                 </article>
                 <article id="method_offsetSet" class="method">
                     <header>
                         <h4 class="public">offsetSet()</h4>
                     </header>
-                    <pre class="signature">offsetSet(integer  <span class="argument">$offset</span>, array  <span class="argument">$value</span>)</pre>
+                    <pre class="signature">offsetSet(number  <span class="argument">offset</span>, object  <span class="argument">value</span>)</pre>
                     <p><em>Changes the result value at the given offset.</em></p>
                     <section>
                         <h5>Overwrites</h5>
@@ -434,13 +407,13 @@ menu: api
                         <table>
                             <tbody>
                             <tr>
-                                <td><b>integer</b></td>
-                                <td><code>$offset</code></td>
+                                <td><b>number</b></td>
+                                <td><code>offset</code></td>
                                 <td></td>
                             </tr>
                             <tr>
-                                <td><b>array</b></td>
-                                <td><code>$value</code></td>
+                                <td><b>object</b></td>
+                                <td><code>value</code></td>
                                 <td></td>
                             </tr>
                             </tbody>
@@ -448,14 +421,14 @@ menu: api
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p>Error</p>
                     </section>
                 </article>
                 <article id="method_offsetUnset" class="method">
                     <header>
                         <h4 class="public">offsetUnset()</h4>
                     </header>
-                    <pre class="signature">offsetUnset(integer  <span class="argument">$offset</span>)</pre>
+                    <pre class="signature">offsetUnset(number  <span class="argument">offset</span>)</pre>
                     <p><em>Unsets a result at the given offset.</em></p>
                     <section>
                         <h5>Overwrites</h5>
@@ -466,8 +439,8 @@ menu: api
                         <table>
                             <tbody>
                             <tr>
-                                <td><b>integer</b></td>
-                                <td><code>$offset</code></td>
+                                <td><b>number</b></td>
+                                <td><code>offset</code></td>
                                 <td></td>
                             </tr>
                             </tbody>
@@ -478,75 +451,75 @@ menu: api
                     <header>
                         <h4 class="public">fetch()</h4>
                     </header>
-                    <pre class="signature">fetch(integer  <span class="argument">$mode = NULL</span>, string  <span class="argument">$className = NULL</span>) : array|boolean|\JSONDB\QueryResultObject</pre>
+                    <pre class="signature">fetch(number  <span class="argument">mode = NULL</span>, string  <span class="argument">className = NULL</span>) : object|boolean|QueryResultObject</pre>
                     <p><em>Fetch for results.</em></p>
                     <section>
                         <h5>Parameters</h5>
                         <table>
                             <tbody>
                             <tr>
-                                <td><b>integer</b></td>
-                                <td><code>$mode</code></td>
+                                <td><b>number</b></td>
+                                <td><code>mode</code></td>
                                 <td><i>The fetch mode</i></td>
                             </tr>
                             <tr>
                                 <td><b>string</b></td>
-                                <td><code>$className</code></td>
-                                <td>The class name (required when <code>$mode</code> is <code>\JSONDB\JSONDB::FETCH_CLASS</code>)</td>
+                                <td><code>className</code></td>
+                                <td>The class name (required when <code>mode</code> is <code>JSONDB::FETCH_CLASS</code>)</td>
                             </tr>
                             </tbody>
                         </table>
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p>Error</p>
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p>array|boolean|<a href="{{ site.github.url }}/docs/api/jsondb/QueryResultObject.html">\JSONDB\QueryResultObject</a></p>
+                        <p>Array|object</p>
                     </section>
                 </article>
                 <article id="method_setFetchMode" class="method">
                     <header>
                         <h4 class="public">setFetchMode()</h4>
                     </header>
-                    <pre class="signature">setFetchMode(integer  <span class="argument">$mode = NULL</span>, string  <span class="argument">$className = NULL</span>) : array|boolean|\JSONDB\QueryResultObject</pre>
+                    <pre class="signature">setFetchMode(number  <span class="argument">mode = NULL</span>, string  <span class="argument">className = NULL</span>) : object|boolean|QueryResultObject</pre>
                     <p><em>Changes the fetch mode.</em></p>
                     <section>
                         <h5>Parameters</h5>
                         <table>
                             <tbody>
                             <tr>
-                                <td><b>integer</b></td>
-                                <td><code>$mode</code></td>
+                                <td><b>number</b></td>
+                                <td><code>mode</code></td>
                                 <td><i>The fetch mode</i></td>
                             </tr>
                             <tr>
                                 <td><b>string</b></td>
-                                <td><code>$className</code></td>
-                                <td>The class name (required when <code>$mode</code> is <code>\JSONDB\JSONDB::FETCH_CLASS</code>)</td>
+                                <td><code>className</code></td>
+                                <td>The class name (required when <code>mode</code> is <code>JSONDB::FETCH_CLASS</code>)</td>
                             </tr>
                             </tbody>
                         </table>
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/QueryResult.html">\JSONDB\QueryResult</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/QueryResult.html">QueryResult</a></p>
                     </section>
                 </article>
                 <article id="method__setResults" class="method">
                     <header>
                         <h4 class="public">_setResults()</h4>
                     </header>
-                    <pre class="signature">_setResults(array  <span class="argument">$results</span>)</pre>
-                    <p><em>Changes the value of <code>$results</code>.</em></p>
+                    <pre class="signature">_setResults(object  <span class="argument">results</span>)</pre>
+                    <p><em>Changes the value of <code>results</code>.</em></p>
                     <section>
                         <h5>Parameters</h5>
                         <table>
                             <tbody>
                             <tr>
-                                <td><b>array</b></td>
-                                <td><code>$results</code></td>
+                                <td><b>object</b></td>
+                                <td><code>results</code></td>
                                 <td></td>
                             </tr>
                             </tbody>
@@ -558,7 +531,7 @@ menu: api
                         <h4 class="public">_parseResults()</h4>
                     </header>
                     <pre class="signature">_parseResults()</pre>
-                    <p><em>Adds information in <code>$results</code>.</em></p>
+                    <p><em>Adds information in <code>results</code>.</em></p>
                 </article>
             </div>
         </div>
