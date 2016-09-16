@@ -1,11 +1,11 @@
 ---
 layout: api_class
-title: "Class Benchmark | JSONDB API Documentation | JSONDB PHP Edition"
+title: "Class Benchmark | JSONDB API Documentation | JSONDB Node.js Edition"
 menu: "api"
 ---
 <div class="content">
     <header class="intro">
-        <h2><small>\JSONDB\</small>Benchmark</h2>
+        <h2>Benchmark</h2>
         <p><em>Class Benchmark</em></p>
     </header>
 
@@ -33,7 +33,7 @@ menu: "api"
                             <tr><td><a href="#properties">Properties</a></td></tr>
                         </thead>
                         <tbody>
-                            <tr><td><a href="#property_marker" class="private">$marker</a></td></tr>
+                            <tr><td><a href="#property_marker" class="private">marker</a></td></tr>
                         </tbody>
                     </table>
                 </section>
@@ -59,9 +59,9 @@ menu: "api"
             <div class="g12">
                 <article id="property_marker" class="property">
                     <header>
-                        <h4 class="private">$marker</h4>
+                        <h4 class="private">marker</h4>
                     </header>
-                    <pre class="signature">$marker : array</pre>
+                    <pre class="signature">marker : object</pre>
                     <table>
                         <tbody>
                             <tr>
@@ -70,7 +70,7 @@ menu: "api"
                             </tr>
                             <tr>
                                 <td><b>Type</b></td>
-                                <td><i>array</i></td>
+                                <td><i>object</i></td>
                             </tr>
                         </tbody>
                     </table>
@@ -87,7 +87,7 @@ menu: "api"
                     <header>
                         <h4 class="public">mark()</h4>
                     </header>
-                    <pre class="signature">mark(string  <span class="argument">$name</span>) : void</pre>
+                    <pre class="signature">mark(string  <span class="argument">name</span>) : void</pre>
                     <p><em>Add a benchmark point.</em></p>
                     <section>
                         <h5>Parameters</h5>
@@ -95,7 +95,7 @@ menu: "api"
                             <tbody>
                                 <tr>
                                     <td><b>string</b></td>
-                                    <td><code>$name</code></td>
+                                    <td><code>name</code></td>
                                     <td><i>The name of the benchmark point</i></td>
                                 </tr>
                             </tbody>
@@ -106,7 +106,7 @@ menu: "api"
                     <header>
                         <h4 class="public">elapsed_time()</h4>
                     </header>
-                    <pre class="signature">elapsed_time(string  <span class="argument">$point1 = &#039;&#039;</span>, string  <span class="argument">$point2 = &#039;&#039;</span>, integer  <span class="argument">$decimals = 4</span>) : mixed</pre>
+                    <pre class="signature">elapsed_time(string  <span class="argument">point1 = &#039;&#039;</span>, string  <span class="argument">point2 = &#039;&#039;</span>, number  <span class="argument">decimals = 4</span>) : mixed</pre>
                     <p><em>Calculates the elapsed time between two benchmark points.</em></p>
                     <section>
                         <h5>Parameters</h5>
@@ -114,17 +114,17 @@ menu: "api"
                             <tbody>
                                 <tr>
                                     <td><b>string</b></td>
-                                    <td><code>$point1</code></td>
+                                    <td><code>point1</code></td>
                                     <td><i>The name of the first benchmark point</i></td>
                                 </tr>
                                 <tr>
                                     <td><b>string</b></td>
-                                    <td><code>$point2</code></td>
+                                    <td><code>point2</code></td>
                                     <td><i>The name of the second benchmark point</i></td>
                                 </tr>
                                 <tr>
-                                    <td><b>integer</b></td>
-                                    <td><code>$decimals</code></td>
+                                    <td><b>number</b></td>
+                                    <td><code>decimals</code></td>
                                     <td><i>The amount of numbers after the decimal point</i></td>
                                 </tr>
                             </tbody>
@@ -139,7 +139,7 @@ menu: "api"
                     <header>
                         <h4 class="public">memory_usage()</h4>
                     </header>
-                    <pre class="signature">memory_usage(string  <span class="argument">$point1 = &#039;&#039;</span>, string  <span class="argument">$point2 = &#039;&#039;</span>, integer  <span class="argument">$decimals = 4</span>) : mixed</pre>
+                    <pre class="signature">memory_usage(string  <span class="argument">point1 = &#039;&#039;</span>, string  <span class="argument">point2 = &#039;&#039;</span>, number  <span class="argument">decimals = 4</span>) : mixed</pre>
                     <p><em>Calculates the memory usage of a benchmark point.</em></p>
                     <section>
                         <h5>Parameters</h5>
@@ -147,17 +147,17 @@ menu: "api"
                             <tbody>
                                 <tr>
                                     <td><b>string</b></td>
-                                    <td><code>$point1</code></td>
+                                    <td><code>point1</code></td>
                                     <td><i>The name of the first benchmark point</i></td>
                                 </tr>
                                 <tr>
                                     <td><b>string</b></td>
-                                    <td><code>$point2</code></td>
+                                    <td><code>point2</code></td>
                                     <td><i>The name of the second benchmark point</i></td>
                                 </tr>
                                 <tr>
-                                    <td><b>integer</b></td>
-                                    <td><code>$decimals</code></td>
+                                    <td><b>number</b></td>
+                                    <td><code>decimals</code></td>
                                     <td><i>The amount of numbers after the decimal point</i></td>
                                 </tr>
                             </tbody>

@@ -1,11 +1,11 @@
 ---
 layout: api_class
-title: "Class Database | JSONDB API Documentation | JSONDB PHP Edition"
+title: "Class Database | JSONDB API Documentation | JSONDB Node.js Edition"
 menu: "api"
 ---
 <div class="content">
     <header class="intro">
-        <h2><small>\JSONDB\</small>Database</h2>
+        <h2>Database</h2>
         <p><em>Class Database</em></p>
     </header>
     <section id="summary">
@@ -18,7 +18,7 @@ menu: "api"
                             <tr><td><a href="#methods">Methods</a></td></tr>
                         </thead>
                         <tbody>
-                            <tr><td><a href="#method___construct" class="public">__construct()</a></td></tr>
+                            <tr><td><a href="#method_Database" class="public">Database()</a></td></tr>
                             <tr><td><a href="#method_setDatabase" class="public">setDatabase()</a></td></tr>
                             <tr><td><a href="#method_setTable" class="public">setTable()</a></td></tr>
                             <tr><td><a href="#method_queryString" class="public">queryString()</a></td></tr>
@@ -59,20 +59,20 @@ menu: "api"
                             <tr><td><a href="#properties">Properties</a></td></tr>
                         </thead>
                         <tbody>
-                            <tr><td><a href="#property_server" class="private">$server</a></td></tr>
-                            <tr><td><a href="#property_database" class="private">$database</a></td></tr>
-                            <tr><td><a href="#property_table" class="private">$table</a></td></tr>
-                            <tr><td><a href="#property_username" class="private">$username</a></td></tr>
-                            <tr><td><a href="#property_password" class="private">$password</a></td></tr>
-                            <tr><td><a href="#property_queryIsPrepared" class="private">$queryIsPrepared</a></td></tr>
-                            <tr><td><a href="#property_queryIsExecuted" class="private">$queryIsExecuted</a></td></tr>
-                            <tr><td><a href="#property_queryString" class="private">$queryString</a></td></tr>
-                            <tr><td><a href="#property_parsedQuery" class="private">$parsedQuery</a></td></tr>
-                            <tr><td><a href="#property_queryResults" class="private">$queryResults</a></td></tr>
-                            <tr><td><a href="#property_cache" class="private">$cache</a></td></tr>
-                            <tr><td><a href="#property_queryParser" class="private">$queryParser</a></td></tr>
-                            <tr><td><a href="#property_config" class="private">$config</a></td></tr>
-                            <tr><td><a href="#property_benchmark" class="private">$benchmark</a></td></tr>
+                            <tr><td><a href="#property_server" class="private">server</a></td></tr>
+                            <tr><td><a href="#property_database" class="private">database</a></td></tr>
+                            <tr><td><a href="#property_table" class="private">table</a></td></tr>
+                            <tr><td><a href="#property_username" class="private">username</a></td></tr>
+                            <tr><td><a href="#property_password" class="private">password</a></td></tr>
+                            <tr><td><a href="#property_queryIsPrepared" class="private">queryIsPrepared</a></td></tr>
+                            <tr><td><a href="#property_queryIsExecuted" class="private">queryIsExecuted</a></td></tr>
+                            <tr><td><a href="#property_queryString" class="private">queryString</a></td></tr>
+                            <tr><td><a href="#property_parsedQuery" class="private">parsedQuery</a></td></tr>
+                            <tr><td><a href="#property_queryResults" class="private">queryResults</a></td></tr>
+                            <tr><td><a href="#property_cache" class="private">cache</a></td></tr>
+                            <tr><td><a href="#property_queryParser" class="private">queryParser</a></td></tr>
+                            <tr><td><a href="#property_config" class="private">config</a></td></tr>
+                            <tr><td><a href="#property_benchmark" class="private">benchmark</a></td></tr>
                         </tbody>
                     </table>
                 </section>
@@ -98,9 +98,9 @@ menu: "api"
             <div class="g12">
                 <article id="property_server" class="property">
                     <header>
-                        <h4 class="private">$server</h4>
+                        <h4 class="private">server</h4>
                     </header>
-                    <pre class="signature">$server : string</pre>
+                    <pre class="signature">server : string</pre>
                     <table>
                         <tbody>
                             <tr>
@@ -116,9 +116,9 @@ menu: "api"
                 </article>
                 <article id="property_database" class="property">
                     <header>
-                        <h4 class="private">$database</h4>
+                        <h4 class="private">database</h4>
                     </header>
-                    <pre class="signature">$database : string</pre>
+                    <pre class="signature">database : string</pre>
                     <table>
                         <tbody>
                             <tr>
@@ -134,9 +134,9 @@ menu: "api"
                 </article>
                 <article id="property_table" class="property">
                     <header>
-                        <h4 class="private">$table</h4>
+                        <h4 class="private">table</h4>
                     </header>
-                    <pre class="signature">$table : string</pre>
+                    <pre class="signature">table : string</pre>
                     <table>
                         <tbody>
                         <tr>
@@ -152,9 +152,9 @@ menu: "api"
                 </article>
                 <article id="property_username" class="property">
                     <header>
-                        <h4 class="private">$username</h4>
+                        <h4 class="private">username</h4>
                     </header>
-                    <pre class="signature">$username : string</pre>
+                    <pre class="signature">username : string</pre>
                     <table>
                         <tbody>
                             <tr>
@@ -170,9 +170,9 @@ menu: "api"
                 </article>
                 <article id="property_password" class="property">
                     <header>
-                        <h4 class="private">$password</h4>
+                        <h4 class="private">password</h4>
                     </header>
-                    <pre class="signature">$password : string</pre>
+                    <pre class="signature">password : string</pre>
                     <table>
                         <tbody>
                             <tr>
@@ -188,9 +188,9 @@ menu: "api"
                 </article>
                 <article id="property_queryIsPrepared" class="property">
                     <header>
-                        <h4 class="private">$queryIsPrepared</h4>
+                        <h4 class="private">queryIsPrepared</h4>
                     </header>
-                    <pre class="signature">$queryIsPrepared : boolean</pre>
+                    <pre class="signature">queryIsPrepared : boolean</pre>
                     <table>
                         <tbody>
                             <tr>
@@ -206,9 +206,9 @@ menu: "api"
                 </article>
                 <article id="property_queryIsExecuted" class="property">
                     <header>
-                        <h4 class="private">$queryIsExecuted</h4>
+                        <h4 class="private">queryIsExecuted</h4>
                     </header>
-                    <pre class="signature">$queryIsExecuted : boolean</pre>
+                    <pre class="signature">queryIsExecuted : boolean</pre>
                     <table>
                         <tbody>
                             <tr>
@@ -224,9 +224,9 @@ menu: "api"
                 </article>
                 <article id="property_queryString" class="property">
                     <header>
-                        <h4 class="private">$queryString</h4>
+                        <h4 class="private">queryString</h4>
                     </header>
-                    <pre class="signature">$queryString : string</pre>
+                    <pre class="signature">queryString : string</pre>
                     <table>
                         <tbody>
                         <tr>
@@ -242,9 +242,9 @@ menu: "api"
                 </article>
                 <article id="property_parsedQuery" class="property">
                     <header>
-                        <h4 class="private">$parsedQuery</h4>
+                        <h4 class="private">parsedQuery</h4>
                     </header>
-                    <pre class="signature">$parsedQuery : array</pre>
+                    <pre class="signature">parsedQuery : object</pre>
                     <table>
                         <tbody>
                             <tr>
@@ -253,16 +253,16 @@ menu: "api"
                             </tr>
                             <tr>
                                 <td><b>Type</b></td>
-                                <td><i>array</i></td>
+                                <td><i>object</i></td>
                             </tr>
                         </tbody>
                     </table>
                 </article>
                 <article id="property_queryResults" class="property">
                     <header>
-                        <h4 class="private">$queryResults</h4>
+                        <h4 class="private">queryResults</h4>
                     </header>
-                    <pre class="signature">$queryResults : array</pre>
+                    <pre class="signature">queryResults : object</pre>
                     <table>
                         <tbody>
                             <tr>
@@ -271,16 +271,16 @@ menu: "api"
                             </tr>
                             <tr>
                                 <td><b>Type</b></td>
-                                <td><i>array</i></td>
+                                <td><i>object</i></td>
                             </tr>
                         </tbody>
                     </table>
                 </article>
                 <article id="property_cache" class="property">
                     <header>
-                        <h4 class="private">$cache</h4>
+                        <h4 class="private">cache</h4>
                     </header>
-                    <pre class="signature">$cache : \JSONDB\Cache</pre>
+                    <pre class="signature">cache : Cache</pre>
                     <table>
                         <tbody>
                             <tr>
@@ -289,16 +289,16 @@ menu: "api"
                             </tr>
                             <tr>
                                 <td><b>Type</b></td>
-                                <td><a href="{{ site.github.url }}/docs/api/jsondb/Cache.html"><i>\JSONDB\Cache</i></a></td>
+                                <td><a href="{{ site.github.url }}/docs/api/jsondb/Cache.html"><i>Cache</i></a></td>
                             </tr>
                         </tbody>
                     </table>
                 </article>
                 <article id="property_queryParser" class="property">
                     <header>
-                        <h4 class="private">$queryParser</h4>
+                        <h4 class="private">queryParser</h4>
                     </header>
-                    <pre class="signature">$queryParser : \JSONDB\QueryParser</pre>
+                    <pre class="signature">queryParser : QueryParser</pre>
                     <table>
                         <tbody>
                             <tr>
@@ -307,16 +307,16 @@ menu: "api"
                             </tr>
                             <tr>
                                 <td><b>Type</b></td>
-                                <td><a href="{{ site.github.url }}/docs/api/jsondb/QueryParser.html"><i>\JSONDB\QueryParser</i></a></td>
+                                <td><a href="{{ site.github.url }}/docs/api/jsondb/QueryParser.html"><i>QueryParser</i></a></td>
                             </tr>
                         </tbody>
                     </table>
                 </article>
                 <article id="property_config" class="property">
                     <header>
-                        <h4 class="private">$config</h4>
+                        <h4 class="private">config</h4>
                     </header>
-                    <pre class="signature">$config : \JSONDB\Configuration</pre>
+                    <pre class="signature">config : Configuration</pre>
                     <table>
                         <tbody>
                             <tr>
@@ -325,16 +325,16 @@ menu: "api"
                             </tr>
                             <tr>
                                 <td><b>Type</b></td>
-                                <td><a href="{{ site.github.url }}/docs/api/jsondb/Configuration.html"><i>\JSONDB\Configuration</i></a></td>
+                                <td><a href="{{ site.github.url }}/docs/api/jsondb/Configuration.html"><i>Configuration</i></a></td>
                             </tr>
                         </tbody>
                     </table>
                 </article>
                 <article id="property_benchmark" class="property">
                     <header>
-                        <h4 class="private">$benchmark</h4>
+                        <h4 class="private">benchmark</h4>
                     </header>
-                    <pre class="signature">$benchmark : \JSONDB\Benchmark</pre>
+                    <pre class="signature">benchmark : Benchmark</pre>
                     <table>
                         <tbody>
                             <tr>
@@ -343,7 +343,7 @@ menu: "api"
                             </tr>
                             <tr>
                                 <td><b>Type</b></td>
-                                <td><a href="{{ site.github.url }}/docs/api/jsondb/Benchmark.html"><i>\JSONDB\Benchmark</i></a></td>
+                                <td><a href="{{ site.github.url }}/docs/api/jsondb/Benchmark.html"><i>Benchmark</i></a></td>
                             </tr>
                         </tbody>
                     </table>
@@ -356,34 +356,34 @@ menu: "api"
         <h3>Methods</h3>
         <div class="grid quarter">
             <div class="g12">
-                <article id="method___construct" class="method">
+                <article id="method_Database" class="method">
                     <header>
-                        <h4 class="public">__construct()</h4>
+                        <h4 class="public">Database()</h4>
                     </header>
-                    <pre class="signature">__construct(string <span class="argument">$server</span>, string  <span class="argument">$username</span>, string  <span class="argument">$password</span>, string  <span class="argument">$database = NULL</span> )</pre>
-                    <p><em>Database __constructor.</em></p>
+                    <pre class="signature">Database(string <span class="argument">server</span>, string  <span class="argument">username</span>, string  <span class="argument">password</span>, string  <span class="argument">database = NULL</span> )</pre>
+                    <p><em>Database constructor.</em></p>
                     <section>
                         <h5>Parameters</h5>
                         <table>
                             <tbody>
                                 <tr>
                                     <td><b>string</b></td>
-                                    <td><code>$server</code></td>
+                                    <td><code>server</code></td>
                                     <td><i>The name of the server to connect to</i></td>
                                 </tr>
                                 <tr>
                                     <td><b>string</b></td>
-                                    <td><code>$username</code></td>
+                                    <td><code>username</code></td>
                                     <td><i>The username used to connect to the server</i></td>
                                 </tr>
                                 <tr>
                                     <td><b>string</b></td>
-                                    <td><code>$password</code></td>
+                                    <td><code>password</code></td>
                                     <td><i>The password used for the given username</i></td>
                                 </tr>
                                 <tr>
                                     <td><b>string</b></td>
-                                    <td><code>$database</code></td>
+                                    <td><code>database</code></td>
                                     <td><i>The name of the database to use with the current connection</i></td>
                                 </tr>
                             </tbody>
@@ -391,14 +391,14 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                 </article>
                 <article id="method_setDatabase" class="method">
                     <header>
                         <h4 class="public">setDatabase()</h4>
                     </header>
-                    <pre class="signature">setDatabase(string  <span class="argument">$database</span>) : \JSONDB\Database</pre>
+                    <pre class="signature">setDatabase(string  <span class="argument">database</span>) : Database</pre>
                     <p><em>Changes the currently used database.</em></p>
                     <section>
                         <h5>Parameters</h5>
@@ -406,7 +406,7 @@ menu: "api"
                             <tbody>
                                 <tr>
                                     <td><b>string</b></td>
-                                    <td><code>$database</code></td>
+                                    <td><code>database</code></td>
                                     <td><i>The name of the database</i></td>
                                 </tr>
                             </tbody>
@@ -414,18 +414,18 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Database.html">\JSONDB\Database</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Database.html">Database</a></p>
                     </section>
                 </article>
                 <article id="method_setTable" class="method">
                     <header>
                         <h4 class="public">setTable()</h4>
                     </header>
-                    <pre class="signature">get(string  <span class="argument">$table</span>) : \JSONDB\Database</pre>
+                    <pre class="signature">get(string  <span class="argument">table</span>) : Database</pre>
                     <p><em>Change the currently used table.</em></p>
                     <section>
                         <h5>Parameters</h5>
@@ -433,7 +433,7 @@ menu: "api"
                             <tbody>
                                 <tr>
                                     <td><b>string</b></td>
-                                    <td><code>$table</code></td>
+                                    <td><code>table</code></td>
                                     <td><i>The name of the table</i></td>
                                 </tr>
                             </tbody>
@@ -441,11 +441,11 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Database.html">\JSONDB\Database</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Database.html">Database</a></p>
                     </section>
                 </article>
                 <article id="method_queryString" class="method">
@@ -496,18 +496,18 @@ menu: "api"
                     <header>
                         <h4 class="public">benchmark()</h4>
                     </header>
-                    <pre class="signature">benchmark() : \JSONDB\Benchmark</pre>
+                    <pre class="signature">benchmark() : Benchmark</pre>
                     <p><em>Returns the current benchmark instance.</em></p>
                     <section>
                         <h5>Returns</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Benchmark.html">\JSONDB\Benchmark</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Benchmark.html">Benchmark</a></p>
                     </section>
                 </article>
                 <article id="method_createDatabase" class="method">
                     <header>
                         <h4 class="public">createDatabase()</h4>
                     </header>
-                    <pre class="signature">createDatabase(string  <span class="argument">$name</span>) : \JSONDB\Database</pre>
+                    <pre class="signature">createDatabase(string  <span class="argument">name</span>) : Database</pre>
                     <p><em>Creates a new database in the current server.</em></p>
                     <section>
                         <h5>Parameters</h5>
@@ -515,7 +515,7 @@ menu: "api"
                             <tbody>
                                 <tr>
                                     <td><b>string</b></td>
-                                    <td><code>$name</code></td>
+                                    <td><code>name</code></td>
                                     <td><i>The name of the new database</i></td>
                                 </tr>
                             </tbody>
@@ -523,11 +523,11 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Database.html">\JSONDB\Database</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Database.html">Database</a></p>
                     </section>
                 </article>
                 <article id="method_disconnect" class="method">
@@ -541,7 +541,7 @@ menu: "api"
                     <header>
                         <h4 class="public">createTable()</h4>
                     </header>
-                    <pre class="signature">createTable(string  <span class="argument">$name</span>, array  <span class="argument">$prototype</span>) : \JSONDB\Database</pre>
+                    <pre class="signature">createTable(string  <span class="argument">name</span>, object  <span class="argument">prototype</span>) : Database</pre>
                     <p><em>Creates a new table in the current database.</em></p>
                     <section>
                         <h5>Parameters</h5>
@@ -549,13 +549,13 @@ menu: "api"
                             <tbody>
                                 <tr>
                                     <td><b>string</b></td>
-                                    <td><code>$name</code></td>
+                                    <td><code>name</code></td>
                                     <td><i>The name of the new table</i></td>
                                 </tr>
                                 <tr>
-                                    <td><b>array</b></td>
-                                    <td><code>$prototype</code></td>
-                                    <td><i>The prototype of the table. An array of field names => fields properties pairs.
+                                    <td><b>object</b></td>
+                                    <td><code>prototype</code></td>
+                                    <td><i>The prototype of the table. An object of field names => fields properties pairs.
                                         <a href="{{ site.github.url }}/docs/manual/#create-table">Learn more here</a></i></td>
                                 </tr>
                             </tbody>
@@ -563,18 +563,18 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Database.html">\JSONDB\Database</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Database.html">Database</a></p>
                     </section>
                 </article>
                 <article id="method_query" class="method">
                     <header>
                         <h4 class="public">query()</h4>
                     </header>
-                    <pre class="signature">query(string  <span class="argument">$query</span>) : mixed</pre>
+                    <pre class="signature">query(string  <span class="argument">query</span>) : mixed</pre>
                     <p><em>Sends a JQL query to the current database.</em></p>
                     <section>
                         <h5>Parameters</h5>
@@ -582,7 +582,7 @@ menu: "api"
                             <tbody>
                                 <tr>
                                     <td><b>string</b></td>
-                                    <td><code>$query</code></td>
+                                    <td><code>query</code></td>
                                     <td><i>The JQL query</i></td>
                                 </tr>
                             </tbody>
@@ -590,7 +590,7 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                     <section>
                         <h5>Returns</h5>
@@ -601,7 +601,7 @@ menu: "api"
                     <header>
                         <h4 class="public">prepare()</h4>
                     </header>
-                    <pre class="signature">prepare(string  <span class="argument">$query</span>) : \JSONDB\PreparedQueryStatement</pre>
+                    <pre class="signature">prepare(string  <span class="argument">query</span>) : PreparedQueryStatement</pre>
                     <p><em>Sends a prepared JQL query.</em></p>
                     <section>
                         <h5>Parameters</h5>
@@ -609,7 +609,7 @@ menu: "api"
                             <tbody>
                                 <tr>
                                     <td><b>string</b></td>
-                                    <td><code>$query</code></td>
+                                    <td><code>query</code></td>
                                     <td><i>The prepared JQL query</i></td>
                                 </tr>
                             </tbody>
@@ -617,18 +617,18 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/PreparedQueryStatement.html">\JSONDB\PreparedQueryStatement</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/PreparedQueryStatement.html">PreparedQueryStatement</a></p>
                     </section>
                 </article>
                 <article id="method_getTableData" class="method">
                     <header>
                         <h4 class="public">getTableData()</h4>
                     </header>
-                    <pre class="signature">getTableData(string  <span class="argument">$path = NULL</span>) : array</pre>
+                    <pre class="signature">getTableData(string  <span class="argument">path = NULL</span>) : object</pre>
                     <p><em>Returns table's data.</em></p>
                     <section>
                         <h5>Parameters</h5>
@@ -636,7 +636,7 @@ menu: "api"
                             <tbody>
                                 <tr>
                                     <td><b>string|null</b></td>
-                                    <td><code>$path</code></td>
+                                    <td><code>path</code></td>
                                     <td><i>The path of the table</i></td>
                                 </tr>
                             </tbody>
@@ -644,7 +644,7 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p>array</p>
+                        <p>object</p>
                     </section>
                 </article>
                 <article id="method_queryIsPrepared" class="method">
@@ -673,7 +673,7 @@ menu: "api"
                     <header>
                         <h4 class="protected">_getDatabasePath()</h4>
                     </header>
-                    <pre class="signature">_getDatabasePath(string  <span class="argument">$database = NULL</span>) : string</pre>
+                    <pre class="signature">_getDatabasePath(string  <span class="argument">database = NULL</span>) : string</pre>
                     <p><em>Gets the path to a database.</em></p>
                     <section>
                         <h5>Parameters</h5>
@@ -681,7 +681,7 @@ menu: "api"
                             <tbody>
                                 <tr>
                                     <td><b>string</b></td>
-                                    <td><code>$database</code></td>
+                                    <td><code>database</code></td>
                                     <td><i>The name of the database</i></td>
                                 </tr>
                             </tbody>
@@ -696,7 +696,7 @@ menu: "api"
                     <header>
                         <h4 class="protected">_getTablePath()</h4>
                     </header>
-                    <pre class="signature">_getTablePath(string|null  <span class="argument">$table = NULL</span>) : array</pre>
+                    <pre class="signature">_getTablePath(string|null  <span class="argument">table = NULL</span>) : object</pre>
                     <p><em>Returns the path to a table.</em></p>
                     <section>
                         <h5>Parameters</h5>
@@ -704,7 +704,7 @@ menu: "api"
                             <tbody>
                                 <tr>
                                     <td><b>string</b></td>
-                                    <td><code>$table</code></td>
+                                    <td><code>table</code></td>
                                     <td><i>The name of the table</i></td>
                                 </tr>
                             </tbody>
@@ -719,7 +719,7 @@ menu: "api"
                     <header>
                         <h4 class="protected">_getTableContent()</h4>
                     </header>
-                    <pre class="signature">_getTableContent(string|null  <span class="argument">$table = NULL</span>) : array</pre>
+                    <pre class="signature">_getTableContent(string|null  <span class="argument">table = NULL</span>) : object</pre>
                     <p><em>Returns a table's content.</em></p>
                     <section>
                         <h5>Parameters</h5>
@@ -727,7 +727,7 @@ menu: "api"
                             <tbody>
                                 <tr>
                                     <td><b>string|null</b></td>
-                                    <td><code>$table</code></td>
+                                    <td><code>table</code></td>
                                     <td><i>The name of the table</i></td>
                                 </tr>
                             </tbody>
@@ -735,14 +735,14 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p>array</p>
+                        <p>object</p>
                     </section>
                 </article>
                 <article id="method__parseValue" class="method">
                     <header>
                         <h4 class="protected">_parseValue()</h4>
                     </header>
-                    <pre class="signature">_parseValue(mixed  <span class="argument">$value</span>, array  <span class="argument">$properties</span>) : string|float|integer|array|boolean|null</pre>
+                    <pre class="signature">_parseValue(mixed  <span class="argument">value</span>, object  <span class="argument">properties</span>) : string|float|integer|object|boolean|null</pre>
                     <p><em>Parses a JQL query value.</em></p>
                     <section>
                         <h5>Parameters</h5>
@@ -750,12 +750,12 @@ menu: "api"
                             <tbody>
                                 <tr>
                                     <td><b>mixed</b></td>
-                                    <td><code>$value</code></td>
+                                    <td><code>value</code></td>
                                     <td><i>The value to parse</i></td>
                                 </tr>
                                 <tr>
-                                    <td><b>array</b></td>
-                                    <td><code>$properties</code></td>
+                                    <td><b>object</b></td>
+                                    <td><code>properties</code></td>
                                     <td><i>The properties to use when parsing value</i></td>
                                 </tr>
                             </tbody>
@@ -763,26 +763,26 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Database.html">string|float|integer|array|boolean|null</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Database.html">string|float|integer|object|boolean|null</a></p>
                     </section>
                 </article>
                 <article id="method__select" class="method">
                     <header>
                         <h4 class="protected">_select()</h4>
                     </header>
-                    <pre class="signature">_select(array <span class="argument">$data</span>) : \JSONDB\QueryResult</pre>
+                    <pre class="signature">_select(object <span class="argument">data</span>) : QueryResult</pre>
                     <p><em>The JQL select() query.</em></p>
                     <section>
                         <h5>Parameters</h5>
                         <table>
                             <tbody>
                                 <tr>
-                                    <td><b>array</b></td>
-                                    <td><code>$data</code></td>
+                                    <td><b>object</b></td>
+                                    <td><code>data</code></td>
                                     <td><i>The table's data to use</i></td>
                                 </tr>
                             </tbody>
@@ -790,26 +790,26 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/QueryResult.html">\JSONDB\QueryResult</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/QueryResult.html">QueryResult</a></p>
                     </section>
                 </article>
                 <article id="method__insert" class="method">
                     <header>
                         <h4 class="protected">_insert()</h4>
                     </header>
-                    <pre class="signature">_insert(array <span class="argument">$data</span>) : boolean</pre>
+                    <pre class="signature">_insert(object <span class="argument">data</span>) : boolean</pre>
                     <p><em>The JQL insert() query.</em></p>
                     <section>
                         <h5>Parameters</h5>
                         <table>
                             <tbody>
                             <tr>
-                                <td><b>array</b></td>
-                                <td><code>$data</code></td>
+                                <td><b>object</b></td>
+                                <td><code>data</code></td>
                                 <td><i>The table's data to use</i></td>
                             </tr>
                             </tbody>
@@ -817,7 +817,7 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                     <section>
                         <h5>Returns</h5>
@@ -828,15 +828,15 @@ menu: "api"
                     <header>
                         <h4 class="protected">_replace()</h4>
                     </header>
-                    <pre class="signature">_replace(array <span class="argument">$data</span>) : boolean</pre>
+                    <pre class="signature">_replace(object <span class="argument">data</span>) : boolean</pre>
                     <p><em>The JQL replace() query.</em></p>
                     <section>
                         <h5>Parameters</h5>
                         <table>
                             <tbody>
                             <tr>
-                                <td><b>array</b></td>
-                                <td><code>$data</code></td>
+                                <td><b>object</b></td>
+                                <td><code>data</code></td>
                                 <td><i>The table's data to use</i></td>
                             </tr>
                             </tbody>
@@ -844,7 +844,7 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                     <section>
                         <h5>Returns</h5>
@@ -855,15 +855,15 @@ menu: "api"
                     <header>
                         <h4 class="protected">_delete()</h4>
                     </header>
-                    <pre class="signature">_delete(array <span class="argument">$data</span>) : boolean</pre>
+                    <pre class="signature">_delete(object <span class="argument">data</span>) : boolean</pre>
                     <p><em>The JQL delete() query.</em></p>
                     <section>
                         <h5>Parameters</h5>
                         <table>
                             <tbody>
                             <tr>
-                                <td><b>array</b></td>
-                                <td><code>$data</code></td>
+                                <td><b>object</b></td>
+                                <td><code>data</code></td>
                                 <td><i>The table's data to use</i></td>
                             </tr>
                             </tbody>
@@ -871,7 +871,7 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                     <section>
                         <h5>Returns</h5>
@@ -882,15 +882,15 @@ menu: "api"
                     <header>
                         <h4 class="protected">_update()</h4>
                     </header>
-                    <pre class="signature">_update(array <span class="argument">$data</span>) : boolean</pre>
+                    <pre class="signature">_update(object <span class="argument">data</span>) : boolean</pre>
                     <p><em>The JQL update() query.</em></p>
                     <section>
                         <h5>Parameters</h5>
                         <table>
                             <tbody>
                             <tr>
-                                <td><b>array</b></td>
-                                <td><code>$data</code></td>
+                                <td><b>object</b></td>
+                                <td><code>data</code></td>
                                 <td><i>The table's data to use</i></td>
                             </tr>
                             </tbody>
@@ -898,7 +898,7 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                     <section>
                         <h5>Returns</h5>
@@ -909,15 +909,15 @@ menu: "api"
                     <header>
                         <h4 class="protected">_truncate()</h4>
                     </header>
-                    <pre class="signature">_truncate(array <span class="argument">$data</span>) : boolean</pre>
+                    <pre class="signature">_truncate(object <span class="argument">data</span>) : boolean</pre>
                     <p><em>The JQL truncate() query.</em></p>
                     <section>
                         <h5>Parameters</h5>
                         <table>
                             <tbody>
                             <tr>
-                                <td><b>array</b></td>
-                                <td><code>$data</code></td>
+                                <td><b>object</b></td>
+                                <td><code>data</code></td>
                                 <td><i>The table's data to use</i></td>
                             </tr>
                             </tbody>
@@ -925,7 +925,7 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                     <section>
                         <h5>Returns</h5>
@@ -936,15 +936,15 @@ menu: "api"
                     <header>
                         <h4 class="protected">_count()</h4>
                     </header>
-                    <pre class="signature">_count(array <span class="argument">$data</span>) : \JSONDB\QueryResult</pre>
+                    <pre class="signature">_count(object <span class="argument">data</span>) : QueryResult</pre>
                     <p><em>The JQL count() query.</em></p>
                     <section>
                         <h5>Parameters</h5>
                         <table>
                             <tbody>
                             <tr>
-                                <td><b>array</b></td>
-                                <td><code>$data</code></td>
+                                <td><b>object</b></td>
+                                <td><code>data</code></td>
                                 <td><i>The table's data to use</i></td>
                             </tr>
                             </tbody>
@@ -952,32 +952,32 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/QueryResult.html">\JSONDB\QueryResult</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/QueryResult.html">QueryResult</a></p>
                     </section>
                 </article>
                 <article id="method__filter" class="method">
                     <header>
                         <h4 class="protected">_filter()</h4>
                     </header>
-                    <pre class="signature">_filter(array <span class="argument">$data</span>, array  <span class="argument">$filters</span>) : array</pre>
-                    <p><em>Iterates over each values of <code>$data</code> and test them using conditions if <code>$filters</code>.</em><br/>If a value in <code>$data</code> don't pass
-                    any conditions in <code>$filters</code> it will be removed.</p>
+                    <pre class="signature">_filter(object <span class="argument">data</span>, object  <span class="argument">filters</span>) : object</pre>
+                    <p><em>Iterates over each values of <code>data</code> and test them using conditions if <code>filters</code>.</em><br/>If a value in <code>data</code> don't pass
+                    any conditions in <code>filters</code> it will be removed.</p>
                     <section>
                         <h5>Parameters</h5>
                         <table>
                             <tbody>
                                 <tr>
-                                    <td><b>array</b></td>
-                                    <td><code>$data</code></td>
+                                    <td><b>object</b></td>
+                                    <td><code>data</code></td>
                                     <td><i>The table's data to iterate over</i></td>
                                 </tr>
                                 <tr>
-                                    <td><b>array</b></td>
-                                    <td><code>$filters</code></td>
+                                    <td><b>object</b></td>
+                                    <td><code>filters</code></td>
                                     <td><i>Conditions used to remove data which don't pass them</i></td>
                                 </tr>
                             </tbody>
@@ -985,11 +985,11 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p>array</p>
+                        <p>object</p>
                     </section>
                 </article>
                 <article id="method__execute" class="method">
@@ -1000,7 +1000,7 @@ menu: "api"
                     <p><em>Executes a query and returns the result</em>.</p>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                     <section>
                         <h5>Returns</h5>
@@ -1011,20 +1011,20 @@ menu: "api"
                     <header>
                         <h4 class="private">_getLastValidRowID()</h4>
                     </header>
-                    <pre class="signature">_getLastValidRowID(array  <span class="argument">$data</span>, boolean  <span class="argument">$min = TRUE</span>) : integer</pre>
+                    <pre class="signature">_getLastValidRowID(object  <span class="argument">data</span>, boolean  <span class="argument">min = TRUE</span>) : integer</pre>
                     <p><em>Returns the last valid row ID of a table</em>.</p>
                     <section>
                         <h5>Parameters</h5>
                         <table>
                             <tbody>
                                 <tr>
-                                    <td><b>array</b></td>
-                                    <td><code>$data</code></td>
+                                    <td><b>object</b></td>
+                                    <td><code>data</code></td>
                                     <td><i>The table's data to use</i></td>
                                 </tr>
                                 <tr>
                                     <td><b>boolean</b></td>
-                                    <td><code>$min</code></td>
+                                    <td><code>min</code></td>
                                     <td><i>Used to check if we have to return the minimal or the maximal valid row ID</i></td>
                                 </tr>
                             </tbody>

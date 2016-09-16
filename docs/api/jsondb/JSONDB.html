@@ -1,11 +1,11 @@
 ---
 layout: api_class
-title: "Class JSONDB | JSONDB API Documentation | JSONDB PHP Edition"
+title: "Class JSONDB | JSONDB API Documentation | JSONDB Node.js Edition"
 menu: "api"
 ---
 <div class="content">
     <header class="intro">
-        <h2><small>\JSONDB\</small>JSONDB</h2>
+        <h2>JSONDB</h2>
         <p><em>Class JSONDB</em></p>
     </header>
     <section id="summary">
@@ -18,7 +18,7 @@ menu: "api"
                         <tr><td><a href="#methods">Methods</a></td></tr>
                         </thead>
                         <tbody>
-                        <tr><td><a href="#method___construct" class="public">__construct()</a></td></tr>
+                        <tr><td><a href="#method_JSONDB" class="public">JSONDB()</a></td></tr>
                         <tr><td><a href="#method_getInstance" class="public">getInstance()</a></td></tr>
                         <tr><td><a href="#method_createServer" class="public">createServer()</a></td></tr>
                         <tr><td><a href="#method_connect" class="public">connect()</a></td></tr>
@@ -34,7 +34,7 @@ menu: "api"
                             <tr><td><a href="#properties">Properties</a></td></tr>
                         </thead>
                         <tbody>
-                            <tr><td><a href="#property_instance" class="private">$instance</a></td></tr>
+                            <tr><td><a href="#property_instance" class="private">instance</a></td></tr>
                         </tbody>
                     </table>
                 </section>
@@ -105,7 +105,7 @@ menu: "api"
                         <h4 class="">FETCH_ARRAY</h4>
                     </header>
                     <pre class="signature">FETCH_ARRAY</pre>
-                    <p><em>Defines if we fetch results as array.</em></p>
+                    <p><em>Defines if we fetch results as object.</em></p>
                 </article>
                 <article id="constant_fetch_object" class="constant">
                     <header>
@@ -131,9 +131,9 @@ menu: "api"
             <div class="g12">
                 <article id="property_instance" class="property">
                     <header>
-                        <h4 class="private">$instance</h4>
+                        <h4 class="private">instance</h4>
                     </header>
-                    <pre class="signature">$instance : \JSONDB\JSONDB</pre>
+                    <pre class="signature">instance : JSONDB</pre>
                     <table>
                         <tbody>
                         <tr>
@@ -142,7 +142,7 @@ menu: "api"
                         </tr>
                         <tr>
                             <td><b>Type</b></td>
-                            <td><a href="{{ site.github.url }}/docs/api/jsondb/JSONDB.html"><i>\JSONDB\JSONDB</i></a></td>
+                            <td><a href="{{ site.github.url }}/docs/api/jsondb/JSONDB.html"><i>JSONDB</i></a></td>
                         </tr>
                         </tbody>
                     </table>
@@ -155,22 +155,22 @@ menu: "api"
         <h3>Methods</h3>
         <div class="grid quarter">
             <div class="g12">
-                <article id="method___construct" class="method">
+                <article id="method_JSONDB" class="method">
                     <header>
-                        <h4 class="public">__construct()</h4>
+                        <h4 class="public">JSONDB()</h4>
                     </header>
-                    <pre class="signature">__construct()</pre>
-                    <p><em>JSONDB __constructor.</em></p>
+                    <pre class="signature">JSONDB()</pre>
+                    <p><em>JSONDB constructor.</em></p>
                 </article>
                 <article id="method_getInstance" class="method">
                     <header>
                         <h4 class="public">getInstance()</h4>
                     </header>
-                    <pre class="signature">getInstance() : \JSONDB\JSONDB</pre>
+                    <pre class="signature">getInstance() : JSONDB</pre>
                     <p><em>Returns the current JSONDB instance.</em></p>
                     <section>
                         <h5>Returns</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/JSONDB.html">\JSONDB\JSONDB</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/JSONDB.html">JSONDB</a></p>
                     </section>
                     <code class="static">static</code>
                 </article>
@@ -178,7 +178,7 @@ menu: "api"
                     <header>
                         <h4 class="public">createServer()</h4>
                     </header>
-                    <pre class="signature">createServer(string  <span class="argument">$name</span>, string  <span class="argument">$username</span>, string  <span class="argument">$password</span>, boolean  <span class="argument">$connect = FALSE</span>) : \JSONDB\JSONDB|\JSONDB\Database</pre>
+                    <pre class="signature">createServer(string  <span class="argument">name</span>, string  <span class="argument">username</span>, string  <span class="argument">password</span>, boolean  <span class="argument">connect = FALSE</span>) : JSONDB|Database</pre>
                     <p><em>Creates a new server.</em></p>
                     <section>
                         <h5>Parameters</h5>
@@ -186,22 +186,22 @@ menu: "api"
                             <tbody>
                             <tr>
                                 <td><b>string</b></td>
-                                <td><code>$name</code></td>
+                                <td><code>name</code></td>
                                 <td><i>The server's name</i></td>
                             </tr>
                             <tr>
                                 <td><b>string</b></td>
-                                <td><code>$username</code></td>
+                                <td><code>username</code></td>
                                 <td><i>The server's username</i></td>
                             </tr>
                             <tr>
                                 <td><b>string</b></td>
-                                <td><code>$password</code></td>
+                                <td><code>password</code></td>
                                 <td><i>The server's password</i></td>
                             </tr>
                             <tr>
                                 <td><b>boolean</b></td>
-                                <td><code>$connect</code></td>
+                                <td><code>connect</code></td>
                                 <td><i>Defines if JSONDB have to connect directly to the server after the creation</i></td>
                             </tr>
                             </tbody>
@@ -209,18 +209,18 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/JSONDB.html">\JSONDB\JSONDB</a>|<a href="{{ site.github.url }}/docs/api/jsondb/Database.html">\JSONDB\Database</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/JSONDB.html">JSONDB</a>|<a href="{{ site.github.url }}/docs/api/jsondb/Database.html">Database</a></p>
                     </section>
                 </article>
                 <article id="method_connect" class="method">
                     <header>
                         <h4 class="public">connect()</h4>
                     </header>
-                    <pre class="signature">connect(string  <span class="argument">$name</span>, string  <span class="argument">$username</span>, string  <span class="argument">$password</span>, string  <span class="argument">$database = NULL</span>) : \JSONDB\Database</pre>
+                    <pre class="signature">connect(string  <span class="argument">name</span>, string  <span class="argument">username</span>, string  <span class="argument">password</span>, string  <span class="argument">database = NULL</span>) : Database</pre>
                     <p><em>Connects to a database.</em></p>
                     <section>
                         <h5>Parameters</h5>
@@ -228,22 +228,22 @@ menu: "api"
                             <tbody>
                             <tr>
                                 <td><b>string</b></td>
-                                <td><code>$name</code></td>
+                                <td><code>name</code></td>
                                 <td><i>The server's name</i></td>
                             </tr>
                             <tr>
                                 <td><b>string</b></td>
-                                <td><code>$username</code></td>
+                                <td><code>username</code></td>
                                 <td><i>The username used to connect</i></td>
                             </tr>
                             <tr>
                                 <td><b>string</b></td>
-                                <td><code>$password</code></td>
+                                <td><code>password</code></td>
                                 <td><i>The password used to connect</i></td>
                             </tr>
                             <tr>
                                 <td><b>string</b></td>
-                                <td><code>$database</code></td>
+                                <td><code>database</code></td>
                                 <td><i>The name of the database</i></td>
                             </tr>
                             </tbody>
@@ -251,18 +251,18 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Throws</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">\JSONDB\Exception</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Exception.html">Exception</a></p>
                     </section>
                     <section>
                         <h5>Returns</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Database.html">\JSONDB\Database</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/Database.html">Database</a></p>
                     </section>
                 </article>
                 <article id="method_quote" class="method">
                     <header>
                         <h4 class="public">quote()</h4>
                     </header>
-                    <pre class="signature">quote(string  <span class="argument">$value</span>) : string</pre>
+                    <pre class="signature">quote(string  <span class="argument">value</span>) : string</pre>
                     <p><em>Escapes reserved characters and quotes a value.</em></p>
                     <section>
                         <h5>Parameters</h5>
@@ -270,7 +270,7 @@ menu: "api"
                             <tbody>
                             <tr>
                                 <td><b>string</b></td>
-                                <td><code>$value</code></td>
+                                <td><code>value</code></td>
                                 <td><i>The value to quote</i></td>
                             </tr>
                             </tbody>
@@ -282,7 +282,7 @@ menu: "api"
                     </section>
                     <section>
                         <h5>Link</h5>
-                        <p><a href="{{ site.github.url }}/docs/api/jsondb/QueryParser.html#method_quote">\JSONDB\QueryParser::quote()</a></p>
+                        <p><a href="{{ site.github.url }}/docs/api/jsondb/QueryParser.html#method_quote">QueryParser::quote()</a></p>
                     </section>
                     <code class="static">static</code>
                 </article>
