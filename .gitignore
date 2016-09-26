@@ -4,5 +4,7 @@
 node_modules/
 typings/
 jsconfig.json
-JSONDB.njsproj
-JSONDB.sln
+*.njsproj
+_site/
+*.sln
+servers/
