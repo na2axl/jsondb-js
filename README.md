@@ -219,6 +219,19 @@ Count all users and group by `activated`
 db.query("users.count(*).as(users_nb).group(activated)");
 ```
 
+#### Supported JQL operators
+
+* `a = b` : `a` equal to `b`
+* `a != b` : `a` different than `b`
+* `a <> b` : `a` different than `b`
+* `a >= b` : `a` superior or equal to `b`
+* `a <= b` : `a` inferior or equal to `b`
+* `a < b` : `a` inferior to `b`
+* `a > b` : `a` superior to `b`
+* `a %= b` : `a % b === 0`
+* `a %! b` : `a % b !== 0`
+
+
 ## Full example
 ```javascript
 var JSONDB = require("jsondb-js");
@@ -269,6 +282,11 @@ while (result = results.fetch(JSONDB.FETCH_CLASS, User)) {
     console.log(result.getInfo());
 }
 ```
+
+## Contribution
+Found a bug? Have a feature request? Want to contribute to this project? Please, feel free to create
+a [new issue](https://github.com/na2axl/jsondb-js/issues/new) on GitHub, or fork this code, hack it,
+and make a pull request !
 
 ## Authors
 * **Axel Nana**: <ax.lnana@outlook.com> - [https://tutorialcenters.tk](https://tutorialcenters.tk)
