@@ -242,7 +242,7 @@ Database.prototype.createDatabase = function (name) {
 };
 
 /**
- * Disconnnects to a server
+ * Disconnects to a server
  */
 Database.prototype.disconnect = function () {
     this.benchmark.mark('Database_(disconnect)_start');
@@ -285,6 +285,7 @@ Database.prototype.createTable = function (name, prototype) {
     var table_path = this._getTablePath(name);
     var _f = require('fs');
     var Util = require('./Util');
+    var lockFile = require('lockfile');
 
     if (Util.existsSync(table_path)) {
         this.benchmark.mark('Database_(createTable)_end');
@@ -440,9 +441,15 @@ Database.prototype._execute = function () {
  * @return {object}
  */
 Database.prototype.getTableData = function (path) {
-    path = path || null;
+    path = path || this._getTablePath();
     var _f = require('fs');
-    return JSON.parse(_f.readFileSync(null !== path ? path : this._getTablePath()));
+    var lockFile = require('lockfile');
+
+    lockFile.lockSync(path + '.lock');
+    var ret = JSON.parse(_f.readFileSync(path));
+    lockFile.unlockSync(path + '.lock');
+
+    return ret;
 };
 
 /**
@@ -503,24 +510,6 @@ Database.prototype._getDatabasePath = function (database) {
 Database.prototype._getTablePath = function (table) {
     table = table || null;
     return (null !== table) ? this.server + "/" + this.database + "/" + table + ".json" : this.server + "/" + this.database + "/" + this.table + ".json";
-};
-
-/**
- * Gets a table's content
- * @param {null|string} table The table's name
- * @return {object}
- * @private
- */
-Database.prototype._getTableContent = function (table) {
-    table = table || null;
-    var filename = this._getTablePath(this.table);
-    var _f = require('fs');
-
-    if (null !== table) {
-        filename = this._getTablePath(table);
-    }
-
-    return JSON.parse(_f.readFileSync(filename));
 };
 
 /**
@@ -608,10 +597,11 @@ Database.prototype._select = function (data) {
     var result = data.data;
     var field_links = [];
     var column_links = [];
+    var i, l, max, name;
 
     var Util = require('./Util');
 
-    for (var name in this.parsedQuery.extensions) {
+    for (name in this.parsedQuery.extensions) {
         if (this.parsedQuery.extensions.hasOwnProperty(name)) {
             var parameters = this.parsedQuery.extensions[name];
             switch (name) {
@@ -633,7 +623,7 @@ Database.prototype._select = function (data) {
                 case 'where':
                     if (parameters.length > 0) {
                         var out = [];
-                        for (var i = 0, l = parameters.length; i < l; i++) {
+                        for (i = 0, l = parameters.length; i < l; i++) {
                             out = out.concat(this._filter(result, parameters[i]));
                         }
                         result = out;
@@ -752,10 +742,11 @@ Database.prototype._select = function (data) {
 Database.prototype._insert = function (data) {
     var Util = require('./Util');
     var rows = Util.values(Util.diff(data.prototype, ['#rowid']));
+    var i, l, key, field, lid, slid;
 
     if (this.parsedQuery.extensions.hasOwnProperty('in')) {
         rows = this.parsedQuery.extensions.in;
-        for (var i = 0, l = rows.length; i < l; i++) {
+        for (i = 0, l = rows.length; i < l; i++) {
             if (!~data.prototype.indexOf(rows[i])) {
                 throw new Error("JSONDB Error: Can't insert data in the table \"" + this.table + "\". The column \"" + rows[i] + "\" doesn't exist.");
             }
@@ -774,7 +765,7 @@ Database.prototype._insert = function (data) {
     insert['#'+lk_id] = {
         '#rowid' : parseInt(data.properties.last_valid_row_id) + 1
     };
-    for (var key in this.parsedQuery.parameters) {
+    for (key in this.parsedQuery.parameters) {
         if (this.parsedQuery.parameters.hasOwnProperty(key)) {
             var value = this.parsedQuery.parameters[key];
             insert['#'+lk_id][rows[key]] = this._parseValue(value, data.properties[rows[key]]);
@@ -797,11 +788,11 @@ Database.prototype._insert = function (data) {
         }
     }
 
-    for (var field in data.properties) {
+    for (field in data.properties) {
         if (data.properties.hasOwnProperty(field)) {
             var property = data.properties[field];
             if (typeof property === 'object' && property.hasOwnProperty('auto_increment') && property.auto_increment) {
-                for (var lid in insert) {
+                for (lid in insert) {
                     if (insert.hasOwnProperty(lid)) {
                         if (insert[lid][field]) {
                             continue;
@@ -833,7 +824,7 @@ Database.prototype._insert = function (data) {
     for (lid in insert) {
         if (insert.hasOwnProperty(lid)) {
             var array_data = Util.diff_key(insert[lid], non_pk);
-            for (var slid in Util.slice(insert, i + 1)) {
+            for (slid in Util.slice(insert, i + 1)) {
                 if (insert.hasOwnProperty(slid)) {
                     value = Util.diff_key(insert[slid], non_pk);
                     pk_error = !!(pk_error || ((JSON.stringify(value) === JSON.stringify(array_data)) && (Util.count(array_data) > 0)));
@@ -907,7 +898,15 @@ Database.prototype._insert = function (data) {
 
     this.cache.update(this._getTablePath(), data);
 
-    return !!require('fs').writeFileSync(this._getTablePath(), JSON.stringify(data));
+    var lockFile = require('lockfile');
+
+    while (lockFile.checkSync(this._getTablePath() + '.lock')) {}
+
+    lockFile.lockSync(this._getTablePath() + '.lock');
+    var ret = !!require('fs').writeFileSync(this._getTablePath(), JSON.stringify(data));
+    lockFile.unlockSync(this._getTablePath() + '.lock');
+
+    return ret;
 };
 
 /**
@@ -919,10 +918,11 @@ Database.prototype._insert = function (data) {
 Database.prototype._replace = function (data) {
     var Util = require('./Util');
     var rows = Util.values(Util.diff(data.prototype, ['#rowid']));
+    var i, l, key, k, vl, field, slid;
 
     if (this.parsedQuery.extensions.hasOwnProperty('in')) {
         rows = this.parsedQuery.extensions.in;
-        for (var i = 0, l = rows.length; i < l; i++) {
+        for (i = 0, l = rows.length; i < l; i++) {
             if (!~data.prototype.indexOf(rows[i])) {
                 throw new Error("JSONDB Error: Can't insert data in the table \"" + this.table + "\". The column \"" + rows[i] + "\" doesn't exist.");
             }
@@ -936,7 +936,7 @@ Database.prototype._replace = function (data) {
     }
     var current_data = data.data;
     var insert = [{}];
-    for (var key in this.parsedQuery.parameters) {
+    for (key in this.parsedQuery.parameters) {
         if (this.parsedQuery.parameters.hasOwnProperty(key)) {
             var value = this.parsedQuery.parameters[key];
             if (!(null === value && data.properties[rows[key]].hasOwnProperty('auto_increment') && true === data.properties[rows[key]]['auto_increment'])) {
@@ -949,7 +949,7 @@ Database.prototype._replace = function (data) {
         for (i = 0, l = this.parsedQuery.extensions.and.length; i < l; i++) {
             var values = this.parsedQuery.extensions.and[i];
             var to_add = {};
-            for (var k = 0, vl = values.length; k < vl; k++) {
+            for (k = 0, vl = values.length; k < vl; k++) {
                 var v = values[k];
                 if (!(null === value && data.properties[rows[key]].hasOwnProperty('auto_increment') && true === data.properties[rows[key]]['auto_increment'])) {
                     to_add[rows[k]] = this._parseValue(v, data.properties[rows[k]]);
@@ -960,7 +960,7 @@ Database.prototype._replace = function (data) {
     }
 
     i = 0;
-    for (var field in current_data) {
+    for (field in current_data) {
         if (current_data.hasOwnProperty(field)) {
             current_data[field] = !(typeof insert[i] === 'undefined') ? Util.merge(current_data[field], insert[i]) : current_data[field];
             i++;
@@ -975,7 +975,7 @@ Database.prototype._replace = function (data) {
     for (lid in insert) {
         if (insert.hasOwnProperty(lid)) {
             var array_data = Util.diff_key(insert[lid], non_pk);
-            for (var slid in Util.slice(insert, i + 1)) {
+            for (slid in Util.slice(insert, i + 1)) {
                 if (insert.hasOwnProperty(slid)) {
                     value = Util.diff_key(insert[slid], non_pk);
                     pk_error = !!(pk_error || ((JSON.stringify(value) === JSON.stringify(array_data)) && (Util.count(array_data) > 0)));
@@ -1047,7 +1047,15 @@ Database.prototype._replace = function (data) {
 
     this.cache.update(this._getTablePath(), data);
 
-    return !!require('fs').writeFileSync(this._getTablePath(), JSON.stringify(data));
+    var lockFile = require('lockfile');
+
+    while (lockFile.checkSync(this._getTablePath() + '.lock')) {}
+
+    lockFile.lockSync(this._getTablePath() + '.lock');
+    var ret = !!require('fs').writeFileSync(this._getTablePath(), JSON.stringify(data));
+    lockFile.unlockSync(this._getTablePath() + '.lock');
+
+    return ret;
 };
 
 /**
@@ -1059,17 +1067,18 @@ Database.prototype._replace = function (data) {
 Database.prototype._delete = function (data) {
     var Util = require('./Util');
     var current_data = data.data;
-    var to_delete = current_data;
+    var to_delete = current_data
+    var i, l, key, lid;
 
     if (this.parsedQuery.extensions.hasOwnProperty('where')) {
         var out = {};
-        for (var i = 0, l = this.parsedQuery.extensions.where.length; i < l; i++) {
+        for (i = 0, l = this.parsedQuery.extensions.where.length; i < l; i++) {
             out = Util.concat(out, this._filter(to_delete, this.parsedQuery.extensions.where[i]));
         }
         to_delete = out;
     }
 
-    for (var key in to_delete) {
+    for (key in to_delete) {
         if (to_delete.hasOwnProperty(key)) {
             if (current_data.hasOwnProperty(key)) {
                 delete current_data[key];
@@ -1077,7 +1086,7 @@ Database.prototype._delete = function (data) {
         }
     }
 
-    for (var lid in current_data) {
+    for (lid in current_data) {
         if (current_data.hasOwnProperty(lid)) {
             Util.uksort(current_data[lid], (function (data) {
                 return function (after, now) {
@@ -1098,7 +1107,15 @@ Database.prototype._delete = function (data) {
 
     this.cache.update(this._getTablePath(), data);
 
-    return !!require('fs').writeFileSync(this._getTablePath(), JSON.stringify(data));
+    var lockFile = require('lockfile');
+
+    while (lockFile.checkSync(this._getTablePath() + '.lock')) {}
+
+    lockFile.lockSync(this._getTablePath() + '.lock');
+    var ret = !!require('fs').writeFileSync(this._getTablePath(), JSON.stringify(data));
+    lockFile.unlockSync(this._getTablePath() + '.lock');
+
+    return ret;
 };
 
 /**
@@ -1110,10 +1127,11 @@ Database.prototype._delete = function (data) {
 Database.prototype._update = function (data) {
     var Util = require('./Util');
     var result = data['data'];
+    var i, l, lid, key, ul, id, row, field;
 
     if (this.parsedQuery.extensions.hasOwnProperty('where')) {
         var out = {};
-        for (var i = 0, l = this.parsedQuery.extensions.where.length; i < l; i++) {
+        for (i = 0, l = this.parsedQuery.extensions.where.length; i < l; i++) {
             out = Util.concat(out, this._filter(result, this.parsedQuery.extensions.where[i]));
         }
         result = out;
@@ -1133,7 +1151,7 @@ Database.prototype._update = function (data) {
 
     var pk_error = false;
     var non_pk = Util.flip(Util.diff(data.prototype, data.properties.primary_keys));
-    for (var lid in data.data) {
+    for (lid in data.data) {
         if (data.data.hasOwnProperty(lid)) {
             var array_data = Util.diff_key(data.data[lid], non_pk);
             pk_error = !!(pk_error || ((JSON.stringify(Util.diff_key(values, non_pk)) === JSON.stringify(array_data)) && (Util.count(array_data) > 0)));
@@ -1146,7 +1164,7 @@ Database.prototype._update = function (data) {
     }
 
     var uk_error = false;
-    for (var key = 0, ul = data.properties.unique_keys.length; key < ul; key++) {
+    for (key = 0, ul = data.properties.unique_keys.length; key < ul; key++) {
         var uk = data.properties.unique_keys[key];
         var item = Util.intersect_key(values, Util.combine([uk], [uk]));
         for (lid in data.data) {
@@ -1160,10 +1178,10 @@ Database.prototype._update = function (data) {
         }
     }
 
-    for (var id in result) {
+    for (id in result) {
         if (result.hasOwnProperty(id)) {
             var res_line = result[id];
-            for (var row in values) {
+            for (row in values) {
                 if (values.hasOwnProperty(row)) {
                     result[id][row] = this._parseValue(values[row], data.properties[row]);
                 }
@@ -1197,7 +1215,7 @@ Database.prototype._update = function (data) {
     })(data.data));
 
     var last_ai = 0;
-    for (var field in data.properties) {
+    for (field in data.properties) {
         if (data.properties.hasOwnProperty(field)) {
             var property = data.properties[field];
             if (typeof property === 'object' && property.hasOwnProperty('auto_increment') && true === property.auto_increment) {
@@ -1215,7 +1233,15 @@ Database.prototype._update = function (data) {
 
     this.cache.update(this._getTablePath(), data);
 
-    return !!require('fs').writeFileSync(this._getTablePath(), JSON.stringify(data));
+    var lockFile = require('lockfile');
+
+    while (lockFile.checkSync(this._getTablePath() + '.lock')) {}
+
+    lockFile.lockSync(this._getTablePath() + '.lock');
+    var ret = !!require('fs').writeFileSync(this._getTablePath(), JSON.stringify(data));
+    lockFile.unlockSync(this._getTablePath() + '.lock');
+
+    return ret;
 };
 
 /**
@@ -1230,7 +1256,15 @@ Database.prototype._truncate = function (data) {
 
     this.cache.update(this._getTablePath(), data);
 
-    return !!require('fs').writeFileSync(this._getTablePath(), JSON.stringify(data));
+    var lockFile = require('lockfile');
+
+    while (lockFile.checkSync(this._getTablePath() + '.lock')) {}
+
+    lockFile.lockSync(this._getTablePath() + '.lock');
+    var ret = !!require('fs').writeFileSync(this._getTablePath(), JSON.stringify(data));
+    lockFile.unlockSync(this._getTablePath() + '.lock');
+
+    return ret;
 };
 
 /**
