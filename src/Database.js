@@ -445,6 +445,8 @@ Database.prototype.getTableData = function (path) {
     var _f = require('fs');
     var lockFile = require('lockfile');
 
+    while (lockFile.checkSync(this._getTablePath() + '.lock')) {}
+
     lockFile.lockSync(path + '.lock');
     var ret = JSON.parse(_f.readFileSync(path));
     lockFile.unlockSync(path + '.lock');
