@@ -1,45 +1,103 @@
-var _a = require('assert');
-var _p = require('path');
-var _f = require('fs');
 var JSONDB = require('../src/JSONDB');
 
 var TestClass = function () {
     this.id = null;
-};
-
-var existsSync = function(path){
-    try {
-        _f.statSync(path);
-        return true;
-    } catch (e){
-        return false;
+    this.info = function () {
+        return 'My id is ' + this.id;
     }
 };
 
 var jdb = new JSONDB();
-var database = jdb.createServer('__npm_test_server', '__npm', '', true);
-database
-    .createDatabase('__npm_test_database')
-    .setDatabase('__npm_test_database')
-    .createTable('__npm_test_table_npk', {'php' : {'type' : 'string'}, 'unit' : {'type' : 'int'}})
-    .createTable('__npm_test_table_pk', {'id' : {'auto_increment' : true}})
-    .disconnect();
 
-_a.ok(existsSync(_p.dirname(__dirname) + '/servers/__npm_test_server/__npm_test_database/__npm_test_table_npk.json'), 'JSONDB did not create the table __npm_test_table_npk');
-_a.ok(existsSync(_p.dirname(__dirname) + '/servers/__npm_test_server/__npm_test_database/__npm_test_table_pk.json'), 'JSONDB did not create the table __npm_test_table_pk');
+jdb.async.serverExists('__npm_test_server', function(exists) {
+    if (!exists) {
+        console.log("Test server doesn't exist... Creating one...");
+        jdb.createServer('__npm_test_server', '__npm', '', false);
+        console.log("Test server created (synchronously) !")
+    }
+    console.log('Asynchronous connection to the test server...');
+    jdb.async.connect('__npm_test_server', '__npm', '', null, function(er, database) {
+        if (er) {
+            console.log("Can't connect to the test server...");
+            throw er;
+        }
+        console.log('Successfully connected to the test server !');
+        console.log('Creating a new test database');
+        database.async.createDatabase('__npm_test_database', function(er) {
+            if (er) {
+                console.log("Can't create the test database...");
+                throw er;
+            }
 
-database = jdb.connect('__npm_test_server', '__npm', '', '__npm_test_database');
-database.query('__npm_test_table_npk.insert(\'hello\', 0)');
-database.query('__npm_test_table_npk.update(php, unit).with(\'world\', 1)');
-database.query('__npm_test_table_npk.replace(\'nice\', 2)');
-database.query('__npm_test_table_npk.select(php, unit)');
-database.query('__npm_test_table_npk.delete()');
-database.query('__npm_test_table_npk.truncate()');
-database.query('__npm_test_table_pk.insert(null).and(null).and(null)');
-database.query('__npm_test_table_pk.select(*)').fetch(JSONDB.FETCH_CLASS, TestClass);
+            console.log("Test database created !");
+            database.setDatabase('__npm_test_database');
 
-var query = database.prepare('__npm_test_table_pk.insert(:a).and(:b).and(:c)');
-query.bindValue(':a', 4, JSONDB.PARAM_INT);
-query.bindValue(':b', 5, JSONDB.PARAM_INT);
-query.bindValue(':c', 6, JSONDB.PARAM_INT);
-query.execute();
+            console.log('Creating a test table (with no primary keys)');
+            database.async.createTable('__npm_test_table_npk', {'php' : {'type' : 'string'}, 'unit' : {'type' : 'int'}}, function (err) {
+                if (err) {
+                    console.log("Can't create the test table (with no primary keys)");
+                    throw err;
+                }
+
+                console.log('Test table created ! (with no primary keys)');
+                console.log('Async start... Replacements in test table (with no primary keys)');
+                database.async.query('__npm_test_table_npk.replace(\'nice\', 2)', function (err, res) {
+                    if (err) {
+                        throw err;
+                    }
+                    console.log('Async end for test table (with no primary keys)... Result = ' + res);
+                });
+                console.log('Async not ended... But this message will output (normally... is async...)');
+
+                console.log('Sync start... Insertion in test table (with no primary keys)');
+                var insert = database.query('__npm_test_table_npk.insert(\'hello\', 0)');
+                console.log('Sync end for test table (with no primary keys)... Result = ' + insert);
+
+                // database.query('__npm_test_table_npk.delete()');
+
+                // database.query('__npm_test_table_npk.truncate()');
+            });
+
+            console.log('Creating a test table (with primary keys)');
+            database.async.createTable('__npm_test_table_pk', {'id' : {'auto_increment' : true}}, function (err) {
+                if (err) {
+                    console.log("Can't create the test table (with primary keys)");
+                    throw err;
+                }
+                console.log('Test table created ! (with primary keys)');
+                console.log('Sync start... Insertion in test table (with primary keys)');
+                var res = database.query('__npm_test_table_pk.insert(null).and(null).and(null)');
+                console.log('Sync end for test table (with primary keys)... Result = ' + res);
+
+                console.log('Sync start... Prepared query... Insertion in test table (with primary keys)');
+                var query = database.prepare('__npm_test_table_pk.insert(:a).and(:b).and(:c)');
+                query.bindValue(':a', 4, JSONDB.PARAM_INT);
+                query.bindValue(':b', 5, JSONDB.PARAM_INT);
+                query.bindValue(':c', 6, JSONDB.PARAM_INT);
+                res = query.execute();
+                console.log('Sync end for test table (with primary keys)... Prepared query executed... Result = ' + res);
+
+                console.log('Async start... Selection in test table (with primary keys)');
+                database.async.query('__npm_test_table_pk.select(*)', function (er, res) {
+                    if (er) {
+                        console.log('Async end.. Query execution failed...');
+                        throw er;
+                    }
+                    console.log('Async state: Query successfully executed... Retrieving results...');
+                    res.async.fetch(JSONDB.FETCH_CLASS, TestClass, function(er, line, next) {
+                        if (er) {
+                            console.log('Async end... Can\'t retrieve results...');
+                            throw er;
+                        }
+                        if (line === false) {
+                            console.log('Async end... Results successfully retrieved from test query (with primary keys)');
+                            return;
+                        }
+                        console.log(line.info());
+                        next();
+                    });
+                });
+            });
+        });
+    });
+});
