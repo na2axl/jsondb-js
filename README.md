@@ -183,8 +183,11 @@ results.async.fetch(function(error, result, next) {
     if (error) {
         throw error;
     }
-    // Do stuff with result..
-    next();    
+    // Stop the resursion when there is no data
+    if (result !== false) {
+        // Do stuff with result..
+        next(); // Important to call the same callback function with the next data    
+    }
 });
 
 // -----
@@ -239,16 +242,6 @@ query.async.execute(function(error, results) {
     }
     // Do stuff with results...
 });
-
-//// Specially for select() queries
-// You can change the fecth mode
-results.setFetchMode(JSONDB.FETCH_ARRAY);
-// or...
-results.setFetchMode(JSONDB.FETCH_CLASS, MyCustomClass);
-// Explore results using a while loop
-while (result = results.fetch()) {
-    // Do stuff...
-}
 
 // -----
 
