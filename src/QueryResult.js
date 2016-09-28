@@ -3,53 +3,43 @@
  *
  * Manage JSON files as databases with JSON Query Language (JQL)
  *
- * This content is released under the MIT License (MIT)
+ * This content is released under the GPL License (GPL-3.0)
  *
  * Copyright (c) 2016, Centers Technologies
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package       JSONDB
- * @author       Nana Axel
+ * @package	   JSONDB
+ * @author	   Nana Axel
  * @copyright  Copyright (c) 2016, Centers Technologies
- * @license       http://opensource.org/licenses/MIT MIT License
+ * @license	   http://spdx.org/licenses/GPL-3.0 GPL License
  * @filesource
  */
 
 /**
  * Class QueryResult
  *
- * @package        JSONDB
- * @subpackage  Utilities
+ * @package     JSONDB
+ * @subpackage  Query
  * @category    Results
- * @author        Nana Axel
+ * @author      Nana Axel
  */
 var QueryResult = (function () {
     require('./Util').extends(QueryResult, Array);
 
     var JSONDB = require('./JSONDB');
 
-    function QueryResult(result, database) {
-        this.database = database;
+    /**
+     * Current database instance
+     * @type {QueryResult}
+     */
+    var instance;
+
+    function QueryResult(result, query) {
+        this.query = query;
         this._setResults(QueryResult.__super__.constructor.apply(this, result));
         this._parseResults();
         this.setFetchMode(JSONDB.FETCH_ARRAY);
+
+        instance = this;
     }
 
     /**
@@ -74,13 +64,19 @@ var QueryResult = (function () {
      * Database instance
      * @type {Database}
      */
-    QueryResult.prototype.database = null;
+    QueryResult.prototype.query = null;
 
     /**
      * Results
      * @type {Array}
      */
     QueryResult.prototype.results = [];
+
+    /**
+     * Namespace for asynchronous operations
+     * @type {object}
+     */
+    QueryResult.prototype.async = {};
 
     /**
      * Sets the results
@@ -96,7 +92,7 @@ var QueryResult = (function () {
      * @return {string}
      */
     QueryResult.prototype.queryString = function () {
-        return this.database.getQueryString();
+        return this.query.getQueryString();
     };
 
     /**
@@ -147,7 +143,7 @@ var QueryResult = (function () {
             this.setFetchMode(mode, className);
         }
 
-        if (this.database.queryIsExecuted()) {
+        if (this.query.queryIsExecuted()) {
             if (this.results.hasOwnProperty(this.key)) {
                 var ret = this.current();
                 this.key++;
@@ -157,6 +153,50 @@ var QueryResult = (function () {
         } else {
             throw new Error("JSONDB Query Result Error: Can't fetch for results without execute the query.");
         }
+    };
+
+    /**
+     * Fetch for results
+     * @param {number|function} mode      The fetch mode
+     * @param {string}          className The class name (for JSONDB::FETCH_CLASS)
+     * @param {function}        callback  The callback
+     * @throws {Error}
+     */
+    QueryResult.prototype.async.fetch = function (mode, className, callback) {
+        mode = mode || null;
+        className = className || null;
+        callback = callback || null;
+
+        if (typeof mode === 'function') {
+            callback = mode;
+            mode = null;
+        }
+
+        if (null === callback || !(typeof callback === 'function')) {
+            throw new Error("QueryResult Error: Can't fetch for results asynchronously without a callback");
+        }
+
+        var async = require('async');
+
+        async.setImmediate(function () {
+            if (null !== mode) {
+                instance.setFetchMode(mode, className);
+            }
+
+            if (instance.query.queryIsExecuted()) {
+                if (instance.results.hasOwnProperty(instance.key)) {
+                    var ret = instance.current();
+                    instance.key++;
+                    callback(null, ret, function() {
+                        this.fetch(mode, className, callback);
+                    }.bind(this));
+                } else {
+                    callback(null, false, null);
+                }
+            } else {
+                callback(new Error("JSONDB Query Result Error: Can't fetch for results without execute the query."), null, null);
+            }
+        }.bind(this));
     };
 
     /**
@@ -179,8 +219,8 @@ var QueryResult = (function () {
     QueryResult.prototype._parseResults = function () {
         this.results = require('./Util').merge({
             '#queryString' : this.queryString(),
-            '#elapsedtime' : this.database.bench().elapsed_time('jsondb_(query)_start', 'jsondb_(query)_end'),
-            '#memoryusage' : this.database.bench().memory_usage('jsondb_(query)_start', 'jsondb_(query)_end')
+            '#elapsedtime' : this.query.bench().elapsed_time('jsondb_(query)_start', 'jsondb_(query)_end'),
+            '#memoryusage' : this.query.bench().memory_usage('jsondb_(query)_start', 'jsondb_(query)_end')
         }, this.results);
     };
 
@@ -189,6 +229,6 @@ var QueryResult = (function () {
 })();
 
 // Exports the module
-module.exports = function (result, database) {
-    return new QueryResult(result, database);
+module.exports = function (result, query) {
+    return new QueryResult(result, query);
 };

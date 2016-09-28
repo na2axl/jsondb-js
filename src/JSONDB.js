@@ -3,32 +3,14 @@
  *
  * Manage JSON files as databases with JSON Query Language (JQL)
  *
- * This content is released under the MIT License (MIT)
+ * This content is released under the GPL License (GPL-3.0)
  *
  * Copyright (c) 2016, Centers Technologies
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package    JSONDB
- * @author     Nana Axel
+ * @package	   JSONDB
+ * @author	   Nana Axel
  * @copyright  Copyright (c) 2016, Centers Technologies
- * @license    http://opensource.org/licenses/MIT MIT License
+ * @license	   http://spdx.org/licenses/GPL-3.0 GPL License
  * @filesource
  */
 
@@ -36,129 +18,277 @@
  * Class JSONDB
  *
  * @package     JSONDB
+ * @subpackage  Managers
+ * @category    Server
  * @author      Nana Axel
  */
-var JSONDB = function () { };
+var JSONDB = (function () {
+    function JSONDB() { }
 
-/**
- * Parse value to string
- * @type {number}
- */
-JSONDB.PARAM_STRING = 0;
+    /**
+     * Parse value to string
+     * @type {number}
+     */
+    JSONDB.PARAM_STRING = 0;
 
-/**
- * Parse value to integer
- * @type {number}
- */
-JSONDB.PARAM_INT = 1;
+    /**
+     * Parse value to integer
+     * @type {number}
+     */
+    JSONDB.PARAM_INT = 1;
 
-/**
- * Parse value to boolean
- * @type {number}
- */
-JSONDB.PARAM_BOOL = 2;
+    /**
+     * Parse value to boolean
+     * @type {number}
+     */
+    JSONDB.PARAM_BOOL = 2;
 
-/**
- * Parse value to null
- * @type {number}
- */
-JSONDB.PARAM_NULL = 3;
+    /**
+     * Parse value to null
+     * @type {number}
+     */
+    JSONDB.PARAM_NULL = 3;
 
-/**
- * Parse value to array for
- * prepared queries.
- * @type {number}
- */
-JSONDB.PARAM_ARRAY = 7;
+    /**
+     * Parse value to array for
+     * prepared queries.
+     * @type {number}
+     */
+    JSONDB.PARAM_ARRAY = 7;
 
-/**
- * Fetch results as array
- * @type {number}
- */
-JSONDB.FETCH_ARRAY = 4;
+    /**
+     * Fetch results as array
+     * @type {number}
+     */
+    JSONDB.FETCH_ARRAY = 4;
 
-/**
- * Fetch results as object
- * @type {number}
- */
-JSONDB.FETCH_OBJECT = 4;
+    /**
+     * Fetch results as object
+     * @type {number}
+     */
+    JSONDB.FETCH_OBJECT = 4;
 
-/**
- * Fetch results with class mapping
- * @type {number}
- */
-JSONDB.FETCH_CLASS = 6;
+    /**
+     * Fetch results with class mapping
+     * @type {number}
+     */
+    JSONDB.FETCH_CLASS = 6;
 
-/**
- * Creates a new server.
- * @param {string}  name The server's name
- * @param {string}  username The server's username
- * @param {string}  password The server's user password
- * @param {boolean} connect If JSONDB connects directly to the server after creation
- * @return {JSONDB|Database}
- * @throws {Error}
- */
-JSONDB.prototype.createServer = function (name, username, password, connect) {
-    name = name || null;
-    username = username || null;
-    connect = connect || false;
+    /**
+     * Namespace for all async operations
+     * @type {object}
+     */
+    JSONDB.prototype.async = {};
 
-    var _f = require('fs');
-    var mkdirp = require('mkdirp');
-    var _p = require('path');
-    var Util = require('./Util');
+    /**
+     * Creates a new server.
+     * @param {string}  name     The server's name
+     * @param {string}  username The server's username
+     * @param {string}  password The server's user password
+     * @param {boolean} connect If JSONDB connects directly to the server after creation
+     * @return {JSONDB|Database}
+     * @throws {Error}
+     */
+    JSONDB.prototype.createServer = function (name, username, password, connect) {
+        name = name || null;
+        username = username || null;
+        connect = connect || false;
 
-    var path = _p.normalize(_p.dirname(__dirname) + '/servers/' + name);
-    if (null !== path && username !== null) {
-        if (Util.existsSync(path) && _f.lstatSync(path).isDirectory()) {
-            throw new Error("JSONDB Error: Can't create server \"" + path + "\", the directory already exists.");
+        var _f = require('fs');
+        var mkdirp = require('mkdirp');
+        var _p = require('path');
+        var Util = require('./Util');
+
+        var path = _p.normalize(_p.dirname(__dirname) + '/servers/' + name);
+        if (null !== path && username !== null) {
+            if (Util.existsSync(path) && _f.lstatSync(path).isDirectory()) {
+                throw new Error("JSONDB Error: Can't create the server at \"" + path + "\", the directory already exists.");
+            }
+
+            mkdirp.sync(path);
+
+            if (!_f.lstatSync(path).isDirectory()) {
+                throw new Error("JSONDB Error: Can't create the server at \"" + path + "\". Maybe you don't have write access.");
+            }
+
+            _f.chmodSync(path, 0x1ff);
+
+            require('./Configuration').addUser(name, username, password);
+
+            if (connect) {
+                return this.connect(name, username, password, null);
+            }
+        } else {
+            throw new Error("JSONDB Error: Can't create the server, required parameters are missing.");
         }
 
-        mkdirp.sync(path);
+        return this;
+    };
 
-        if (!_f.lstatSync(path).isDirectory()) {
-            throw new Error("JSONDB Error: Can't create the server \"" + path + "\". Maybe you don't have write access.");
+    /**
+     * Checks if a server exists
+     * @param {string} name The name of the server
+     * @return {boolean}
+     */
+    JSONDB.prototype.serverExists = function (name) {
+        name = name || null;
+
+        if (null === name) {
+            return false;
         }
 
-        _f.chmodSync(path, 0x1ff);
+        var _p = require('path');
+        var Util = require('./Util');
 
-        require('./Configuration').addUser(name, username, password);
+        var path = _p.normalize(_p.dirname(__dirname) + '/servers/' + name);
 
-        if (connect) {
-            return this.connect(name, username, password, null);
+        return Util.existsSync(path);
+    };
+
+    /**
+     * Connects to a query
+     *
+     * Access to a server with an username, a password
+     * and optionally a query's name.
+     *
+     * @param {string}      server   The name of the server
+     * @param {string}      username The username
+     * @param {string}      password The password
+     * @param {string|null} database The name of the query
+     * @throws {Error}
+     * @return {Database}
+     */
+    JSONDB.prototype.connect = function (server, username, password, database) {
+        return require('./Database')(server, username, password, database);
+    };
+
+    /**
+     * Creates a new server asynchronously
+     * @param {string}   name     The server's name
+     * @param {string}   username The server's username
+     * @param {string}   password The server's user password
+     * @param {function} callback The callback
+     */
+    JSONDB.prototype.async.createServer = function (name, username, password, callback) {
+        name = name || null;
+        username = username || null;
+        callback = callback || null;
+
+        if (null === callback || !(typeof callback === 'function')) {
+            throw new Error("JSONDB Error: Can't create a server asynchronously without a callback.");
         }
-    } else {
-        throw new Error("JSONDB Error: Can't create the server, required parameters are missing.");
-    }
 
-    return this;
-};
+        var async = require('async');
 
-/**
- * Connects to a database
- *
- * Access to a server with an username, a password
- * and optionally a database's name.
- *
- * @param {string} server   The name of the server
- * @param {string} username The username
- * @param {string} password The password
- * @param {string|null} database The name of the database
- * @throws {Error}
- * @return {Database}
- */
-JSONDB.prototype.connect = function (server, username, password, database) {
-    return require('./Database')(server, username, password, database);
-};
+        async.setImmediate(function() {
+            var _f = require('fs');
+            var mkdirp = require('mkdirp');
+            var _p = require('path');
+            var Util = require('./Util');
 
-/**
- * Escapes reserved characters and quotes a value
- * @param {string} value
- * @return {string}
- */
-JSONDB.quote = function (value) {
-    return require('./QueryParser').quote(value);
-};
+            var path = _p.normalize(_p.dirname(__dirname) + '/servers/' + name);
+            if (null !== path && username !== null) {
+                Util.exists(path, function (exists) {
+                    if (exists && _f.lstatSync(path).isDirectory()) {
+                        callback(new Error("JSONDB Error: Can't create the server at \"" + path + "\", the directory already exists."));
+                    } else {
+                        mkdirp(path, function (err) {
+                            if (err) {
+                                callback(new Error("JSONDB Error: Can't create the server at \"" + path + "\", the directory can't be created. " + err));
+                            }
+                            _f.chmod(path, 0x1ff, function (err) {
+                                if (err) {
+                                    callback(err);
+                                } else {
+                                    require('./Configuration').addUser(name, username, password);
+                                    callback(null);
+                                }
+                            });
+                        });
+                    }
+                });
+            } else {
+                callback(new Error("JSONDB Error: Can't create the server, required parameters are missing."));
+            }
+        }.bind(this));
+    };
+
+    /**
+     * Checks if a server exists asynchronously
+     * @param {string}   name     The name of the server
+     * @param {function} callback The callback
+     */
+    JSONDB.prototype.async.serverExists = function (name, callback) {
+        callback = callback || null;
+
+        if (null === callback || !(typeof callback === 'function')) {
+            throw new Error("JSONDB Error: Can't check asynchronously if a server exists without a callback.");
+        }
+
+        var async = require('async');
+
+        async.setImmediate(function() {
+            name = name || null;
+
+            if (null === name) {
+                callback(false);
+            }
+
+            var _p = require('path');
+            var Util = require('./Util');
+
+            var path = _p.normalize(_p.dirname(__dirname) + '/servers/' + name);
+
+            Util.exists(path, callback);
+        }.bind(this));
+    };
+
+    /**
+     * Connects to a query
+     *
+     * Access to a server with an username, a password
+     * and optionally a query's name.
+     *
+     * @param {string}          server   The name of the server
+     * @param {string}          username The username
+     * @param {string}          password The password
+     * @param {string|function} database The name of the query
+     * @param {function}        callback The callback
+     */
+    JSONDB.prototype.async.connect = function (server, username, password, database, callback) {
+        callback = callback || null;
+
+        if (typeof database === 'function') {
+            callback = database;
+            database = null;
+        }
+
+        if (null === callback || !(typeof callback === 'function')) {
+            throw new Error("JSONDB Error: Can't connect to a server asynchronously without a callback.");
+        }
+
+        var async = require('async');
+
+        async.setImmediate(function() {
+            try {
+                callback(null, require('./Database')(server, username, password, database));
+            } catch (e) {
+                callback(e, null);
+            }
+        }.bind(this));
+    };
+
+    /**
+     * Escapes reserved characters and quotes a value
+     * @param {string} value
+     * @return {string}
+     */
+    JSONDB.quote = function (value) {
+        return require('./QueryParser').quote(value);
+    };
+
+    return JSONDB;
+})();
 
 // Exports the module
 module.exports = JSONDB;
