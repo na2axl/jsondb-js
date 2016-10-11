@@ -664,18 +664,21 @@ var Query = (function () {
             }
         }
 
+        var temp = {};
         for (i = 0, l = data.prototype.length; i < l; i++) {
             var column = data.prototype[i];
             for (lid in insert) {
                 if (insert.hasOwnProperty(lid)) {
-                    if (!~insert[lid].hasOwnProperty(column)) {
+                    temp[lid] = temp[lid] || {};
+                    if (!insert[lid].hasOwnProperty(column)) {
                         insert[lid][column] = this._parseValue(null, data.properties[column]);
                     }
+                    temp[lid][column] = insert[lid][column];
                 }
             }
         }
 
-        insert = Util.merge(current_data, insert);
+        insert = Util.merge(current_data, temp);
 
         var pk_error = false;
         var non_pk = Util.flip(Util.diff(data.prototype, data.properties.primary_keys));
