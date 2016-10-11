@@ -1,7 +1,7 @@
 /**
  * JSONDB - JSON Database Manager
  *
- * Manage JSON files as databases with JSON Query Language (JQL)
+ * Manage JSON files as databases with JSONDB Query Language (JQL)
  *
  * This content is released under the GPL License (GPL-3.0)
  *
@@ -59,7 +59,7 @@ var Benchmark = (function () {
             return '{elapsed_time}';
         }
         if (typeof Benchmark.marker[point1] === "undefined") {
-            return '';
+            this.mark(point1);
         }
         if (typeof Benchmark.marker[point2] === "undefined") {
             this.mark(point2);
@@ -84,7 +84,7 @@ var Benchmark = (function () {
             return '{memory_usage}';
         }
         if (typeof Benchmark.marker[point1] === "undefined") {
-            return '';
+            this.mark(point1);
         }
         if (typeof Benchmark.marker[point2] === "undefined") {
             this.mark(point2);
