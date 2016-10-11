@@ -1,7 +1,7 @@
 /**
  * JSONDB - JSON Database Manager
  *
- * Manage JSON files as databases with JSON Query Language (JQL)
+ * Manage JSON files as databases with JSONDB Query Language (JQL)
  *
  * This content is released under the GPL License (GPL-3.0)
  *
@@ -29,7 +29,7 @@ var QueryParser = (function () {
      * Reserved query's characters
      * @const {string}
      */
-    QueryParser.TRIM_CHAR = '\'"`() ';
+    QueryParser.TRIM_CHAR = '\'"`()';
 
     /**
      * Reserved query's characters
@@ -67,7 +67,7 @@ var QueryParser = (function () {
      * @return {string}
      */
     QueryParser.prototype.quote = function (value) {
-        value = value.replace(/(['.,;()])/ig, '\\$1').replace(/\\'|\\,|\\\.|\\\(|\\\)|\\;/ig, function (c) {
+        value = value.replace(new RegExp("([" + QueryParser.ESCAPE_CHAR + "])", "ig"), '\\$1').replace(/\\'|\\,|\\\.|\\\(|\\\)|\\;/ig, function (c) {
             switch (c) {
                 case '\\\'':
                     return '{{quot}}';
@@ -107,8 +107,8 @@ var QueryParser = (function () {
         var queryParts = this.notParsedQuery.split('.');
 
         // Getting the table name
-        this.parsedQuery['table'] = queryParts[0];
-        if (typeof this.parsedQuery['table'] === 'undefined') {
+        this.parsedQuery.table = queryParts[0];
+        if (typeof this.parsedQuery.table === 'undefined') {
             throw new Error('JSONDB Query Parse Error: No table detected in the query.');
         }
 
@@ -124,26 +124,30 @@ var QueryParser = (function () {
         }
 
         // Getting the query's main action
-        this.parsedQuery['action'] = queryParts[1].replace(/\(.*\)/, '');
-        if (!~QueryParser.supportedQueries.indexOf(this.parsedQuery['action'].toLowerCase())) {
-            throw new Error("JSONDB Query Parse Error: The query \"" + this.parsedQuery['action'] + "\" isn't supported by JSONDB.");
+        this.parsedQuery.action = queryParts[1].replace(/\(.*\)/, '');
+        if (!~QueryParser.supportedQueries.indexOf(this.parsedQuery.action.toLowerCase())) {
+            throw new Error("JSONDB Query Parse Error: The query \"" + this.parsedQuery.action + "\" isn't supported by JSONDB.");
         }
 
         // Getting the action's parameters
-        this.parsedQuery['parameters'] = queryParts[1].replace(this.parsedQuery.action, '').replace(/\((.+)\)/, '$1').trim().split(',');
-        this.parsedQuery['parameters'] = ((this.parsedQuery['parameters'][0]) ? this.parsedQuery['parameters'] : []).map(function (field) {
+        this.parsedQuery.parameters = queryParts[1].replace(this.parsedQuery.action, '').replace(/\((.+)\)/, '$1').trim();
+        this.parsedQuery.parameters = this.parsedQuery.parameters.replace(/\(([^)]*)\)/g, function (str) {
+            return str.replace(/,/g, ';');
+        });
+        this.parsedQuery.parameters = this.parsedQuery.parameters.split(',');
+        this.parsedQuery.parameters = ((this.parsedQuery.parameters[0]) ? this.parsedQuery.parameters : []).map(function (field) {
             return field.trim();
         });
 
         // Parsing values for some actions
-        if (!!~['insert', 'replace'].indexOf(this.parsedQuery['action'].toLowerCase())) {
-            this.parsedQuery['parameters'] = this.parsedQuery['parameters'].map(function (p) {
+        if (!!~['insert', 'replace'].indexOf(this.parsedQuery.action.toLowerCase())) {
+            this.parsedQuery.parameters = this.parsedQuery.parameters.map(function (p) {
                 return this._parseValue(p);
             }, this);
         }
 
         // Getting query's extensions
-        this.parsedQuery['extensions'] = {};
+        this.parsedQuery.extensions = {};
         var extensions = {};
         for (var index in queryParts.slice(2)) {
             var extension = queryParts.slice(2)[index];
@@ -203,9 +207,9 @@ var QueryParser = (function () {
                     break;
             }
         }
-        this.parsedQuery['extensions'] = extensions;
+        this.parsedQuery.extensions = extensions;
 
-        this.parsedQuery['benchmark'] = {
+        this.parsedQuery.benchmark = {
             'elapsed_time': benchmark.elapsed_time('jsondb_query_parse_start', 'jsondb_query_parse_end'),
             'memory_usage': benchmark.memory_usage('jsondb_query_parse_start', 'jsondb_query_parse_end')
         };
@@ -217,7 +221,7 @@ var QueryParser = (function () {
      * Parses an order() extension
      * @param {string} clause
      * @return {Array}
-     * @throws Error
+     * @throws {Error}
      * @private
      */
     QueryParser.prototype._parseOrderExtension = function (clause) {
@@ -278,9 +282,9 @@ var QueryParser = (function () {
             var operator = QueryParser.operators[index];
             if (!!~condition.indexOf(operator) || !!~condition.split(',').indexOf(operator) || !!~condition.split('').indexOf(operator)) {
                 var row_val = condition.split(operator);
-                filters['operator'] = operator;
-                filters['field'] = row_val[0].replace(/['"`()]/g, '').trim();
-                filters['value'] = this._parseValue(row_val[1]);
+                filters.operator = operator;
+                filters.field = row_val[0].replace(/['"`]/g, '').trim();
+                filters.value = this._parseValue(row_val[1]);
                 break;
             }
         }
@@ -468,6 +472,122 @@ var QueryParser = (function () {
     };
 
     /**
+     * Executes a function and return the result
+     * @param {string} func The query function to execute
+     * @return {*}
+     * @throws {Error}
+     * @private
+     */
+    QueryParser.prototype._parseFunction = function (func) {
+        var parts = func.match(/(\w+)\((.*)\)/);
+        var name = parts[1].toLowerCase();
+        var params = (parts[2] && parts[2].split(';').map((function (_this) {
+            return function (val) {
+                return _this._parseValue(val);
+            };
+        })(this))) || false;
+
+        var Util = require('./Util');
+
+        switch (name) {
+            case 'sha1':
+                if (params === false) {
+                    throw new Error("JSONDB Query Parse Error: There is no parameters for the function sha1(). Can't execute the query.");
+                }
+                if (params.length > 1) {
+                    throw new Error("JSONDB Query Parse Error: Too much parameters for the function sha1(), only one is required.");
+                }
+                var Sha = require('jssha');
+                var shaObj = new Sha("SHA-1", "TEXT");
+                shaObj.update(params[0]);
+                return shaObj.getHash("HEX");
+
+            case 'md5':
+                if (params === false) {
+                    throw new Error("JSONDB Query Parse Error: There is no parameters for the function md5(). Can't execute the query.");
+                }
+                if (params.length > 1) {
+                    throw new Error("JSONDB Query Parse Error: Too much parameters for the function md5(), only one is required.");
+                }
+                var md5 = require('md5');
+                return md5(params[0]);
+
+            case 'time':
+                if (params !== false) {
+                    throw new Error("JSONDB Query Parse Error: Too much parameters for the function time(), no one is required.");
+                }
+                return (new Date()).getTime();
+
+            case 'now':
+                var date = new Date();
+                var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                var months = ['January', 'Febuary', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                if (params === false) {
+                    return [date.getFullYear(), date.getMonth(), date.getDate()].map(Util.zeropad).join('-') + ' ' + [date.getHours(), date.getMinutes(), date.getSeconds()].map(Util.zeropad).join(':');
+                } else {
+                    if (params.length > 1) {
+                        throw new Error("JSONDB Query Parse Error: Too much parameters for the function now(), only one is required.");
+                    }
+                    return params[0]
+                        .replace(/\%a/g, days[date.getDay()].substr(0, 3))
+                        .replace(/\%A/g, days[date.getDay()])
+                        .replace(/\%d/g, Util.zeropad(date.getDate()))
+                        .replace(/\%m/g, Util.zeropad(date.getMonth()))
+                        .replace(/\%e/g, date.getMonth())
+                        .replace(/\%w/g, date.getDay())
+                        .replace(/\%b/g, months[date.getMonth()].substr(0, 3))
+                        .replace(/\%B/g, months[date.getMonth()])
+                        .replace(/\%y/g, date.getFullYear())
+                        .replace(/\%Y/g, date.getFullYear())
+                        .replace(/\%H/g, Util.zeropad(date.getHours()))
+                        .replace(/\%k/g, date.getHours())
+                        .replace(/\%M/g, Util.zeropad(date.getMinutes()))
+                        .replace(/\%S/g, Util.zeropad(date.getSeconds()));
+                }
+
+            case 'lowercase':
+                if (params === false) {
+                    throw new Error("JSONDB Query Parse Error: There is no parameters for the function lowercase(). Can't execute the query.");
+                }
+                if (params.length > 1) {
+                    throw new Error("JSONDB Query Parse Error: Too much parameters for the function lowercase(), only one is required.");
+                }
+                return params[0].toLowerCase();
+
+            case 'uppercase':
+                if (params === false) {
+                    throw new Error("JSONDB Query Parse Error: There is no parameters for the function uppercase(). Can't execute the query.");
+                }
+                if (params.length > 1) {
+                    throw new Error("JSONDB Query Parse Error: Too much parameters for the function uppercase(), only one is required.");
+                }
+                return params[0].toUpperCase();
+
+            case 'ucfirst':
+                if (params === false) {
+                    throw new Error("JSONDB Query Parse Error: There is no parameters for the function uppercase(). Can't execute the query.");
+                }
+                if (params.length > 1) {
+                    throw new Error("JSONDB Query Parse Error: Too much parameters for the function uppercase(), only one is required.");
+                }
+                var first = params[0][0].toUpperCase();
+                return first + params[0].substr(1).toLowerCase();
+
+            case 'strlen':
+                if (params === false) {
+                    throw new Error("JSONDB Query Parse Error: There is no parameters for the function strlen(). Can't execute the query.");
+                }
+                if (params.length > 1) {
+                    throw new Error("JSONDB Query Parse Error: Too much parameters for the function strlen(), only one is required.");
+                }
+                return params[0].length;
+
+            default:
+                throw new Error("JSONDB Query Parse Error: Sorry but the function " + name + "() is not implemented in JQL.");
+        }
+    };
+
+    /**
      * Parses a value
      *
      * It will convert (cast if necessary) a value
@@ -491,7 +611,7 @@ var QueryParser = (function () {
         } else if (!!~value.indexOf(':JSONDB::TO_ARRAY:')) {
             return require('./Util').unserialize(this._parseValue(value.replace(':JSONDB::TO_ARRAY:', '')));
         } else if (trim_value[0] === "'" && trim_value[trim_value.length - 1] === "'") {
-            return trim_value.replace(/['"`()]/g, '').trim().replace(/\{\{quot}}|\{\{comm}}|\{\{dot}}|\{\{pto}}|\{\{ptc}}|\{\{semi}}/ig, function (c) {
+            return trim_value.replace(new RegExp("[" + QueryParser.TRIM_CHAR + "]", "g"), '').trim().replace(/\{\{quot}}|\{\{comm}}|\{\{dot}}|\{\{pto}}|\{\{ptc}}|\{\{semi}}/ig, function (c) {
                 switch (c) {
                     case '{{quot}}':
                         return '\'';
@@ -512,8 +632,10 @@ var QueryParser = (function () {
                         return ';';
                 }
             });
+        } else if (/\w+\(.*\)/.test(value)) {
+            return this._parseFunction(value);
         } else {
-            return parseInt(value.replace(/['"`() ]/g, '').trim());
+            return parseInt(value.replace(new RegExp("[" + QueryParser.TRIM_CHAR + "]", "g"), '').trim());
         }
     };
 
