@@ -335,7 +335,7 @@ var Database = (function () {
             if (null === name) {
                 callback(false);
             }
-            Util.exists(this.server + "/" + this.database + "/" + name + ".json", callback);
+            Util.exists(instance.server + "/" + instance.database + "/" + name + ".json", callback);
         }.bind(this));
     };
 
