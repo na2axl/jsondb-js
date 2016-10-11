@@ -59,7 +59,7 @@ jdb.async.serverExists('__npm_test_server', function(exists) {
             });
 
             console.log('Creating a test table (with primary keys)');
-            database.async.createTable('__npm_test_table_pk', {'id' : {'auto_increment' : true}}, function (err) {
+            database.async.createTable('__npm_test_table_pk', {'id' : {'auto_increment' : true, 'primary_key': true}}, function (err) {
                 if (err) {
                     console.log("Can't create the test table (with primary keys)");
                     throw err;
