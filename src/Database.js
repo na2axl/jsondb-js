@@ -1,7 +1,7 @@
 /**
  * JSONDB - JSON Database Manager
  *
- * Manage JSON files as databases with JSON Query Language (JQL)
+ * Manage JSON files as databases with JSONDB Query Language (JQL)
  *
  * This content is released under the GPL License (GPL-3.0)
  *
@@ -177,10 +177,9 @@ var Database = (function () {
             throw new Error("JSONDB Error: Can't check asynchronously if a database exists without a callback.");
         }
 
-        var async = require('async');
         var Util = require('./Util');
 
-        async.setImmediate(function() {
+        setImmediate(function() {
             name = name || null;
             if (null === name) {
                 callback(false);
@@ -266,9 +265,8 @@ var Database = (function () {
         var Util = require('./Util');
         var mkdirp = require('mkdirp');
         var path = Util._getDatabasePath(instance.server, name);
-        var async = require('async');
 
-        async.setImmediate(function() {
+        setImmediate(function() {
             Util.exists(path, function (exists) {
                 if (exists) {
                     instance.benchmark.mark('Database_(createDatabase)_end');
@@ -330,10 +328,9 @@ var Database = (function () {
             throw new Error("Database Error: Can't check asynchronously if a database exist without a callback.");
         }
 
-        var async = require('async');
         var Util = require('./Util');
 
-        async.setImmediate(function () {
+        setImmediate(function () {
             name = name || null;
             if (null === name) {
                 callback(false);
@@ -487,9 +484,8 @@ var Database = (function () {
         var table_path = instance.server + "/" + instance.database + "/" + name + ".json";
         var _f = require('fs');
         var Util = require('./Util');
-        var async = require('async');
 
-        async.setImmediate(function () {
+        setImmediate(function () {
             Util.exists(table_path, function (exists) {
                 if (exists) {
                     instance.benchmark.mark('Database_(createTable)_end');
@@ -613,9 +609,7 @@ var Database = (function () {
             throw new Error("Database Error: Can't send a query asynchronously without a callback.");
         }
 
-        var async = require('async');
-
-        async.setImmediate(function() {
+        setImmediate(function() {
             (require('./Query')(query, instance)).async._query(callback);
         }.bind(this));
     };
@@ -641,9 +635,7 @@ var Database = (function () {
             throw new Error("Database Error: Can't prepare a query asynchronously without a callback.");
         }
 
-        var async = require('async');
-
-        async.setImmediate(function() {
+        setImmediate(function() {
             var q = require('./Query')(query, instance);
             callback(null, q._prepare());
         });

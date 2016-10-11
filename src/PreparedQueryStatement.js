@@ -1,7 +1,7 @@
 /**
  * JSONDB - JSON Database Manager
  *
- * Manage JSON files as databases with JSON Query Language (JQL)
+ * Manage JSON files as databases with JSONDB Query Language (JQL)
  *
  * This content is released under the GPL License (GPL-3.0)
  *
@@ -127,9 +127,7 @@ var PreparedQueryStatement = (function () {
             throw new Error("JSONDB Error: Can't execute the prepared query asynchronously without a callback.");
         }
 
-        var async = require('async');
-
-        async.setImmediate(function() {
+        setImmediate(function() {
             if (instance.query.queryIsPrepared()) {
                 callback(null, instance.query._query(instance.queryString));
             } else {

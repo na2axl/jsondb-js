@@ -1,7 +1,7 @@
 /**
  * JSONDB - JSON Database Manager
  *
- * Manage JSON files as databases with JSON Query Language (JQL)
+ * Manage JSON files as databases with JSONDB Query Language (JQL)
  *
  * This content is released under the GPL License (GPL-3.0)
  *
@@ -146,15 +146,15 @@ var JSONDB = (function () {
     };
 
     /**
-     * Connects to a query
+     * Connects to a Database
      *
      * Access to a server with an username, a password
-     * and optionally a query's name.
+     * and optionally a Database's name.
      *
      * @param {string}      server   The name of the server
      * @param {string}      username The username
      * @param {string}      password The password
-     * @param {string|null} database The name of the query
+     * @param {string|null} database The name of the Database
      * @throws {Error}
      * @return {Database}
      */
@@ -178,9 +178,7 @@ var JSONDB = (function () {
             throw new Error("JSONDB Error: Can't create a server asynchronously without a callback.");
         }
 
-        var async = require('async');
-
-        async.setImmediate(function() {
+        setImmediate(function() {
             var _f = require('fs');
             var mkdirp = require('mkdirp');
             var _p = require('path');
@@ -225,9 +223,7 @@ var JSONDB = (function () {
             throw new Error("JSONDB Error: Can't check asynchronously if a server exists without a callback.");
         }
 
-        var async = require('async');
-
-        async.setImmediate(function() {
+        setImmediate(function() {
             name = name || null;
 
             if (null === name) {
@@ -244,15 +240,15 @@ var JSONDB = (function () {
     };
 
     /**
-     * Connects to a query
+     * Connects to a Database
      *
      * Access to a server with an username, a password
-     * and optionally a query's name.
+     * and optionally a Database's name.
      *
      * @param {string}          server   The name of the server
      * @param {string}          username The username
      * @param {string}          password The password
-     * @param {string|function} database The name of the query
+     * @param {string|function} database The name of the Database
      * @param {function}        callback The callback
      */
     JSONDB.prototype.async.connect = function (server, username, password, database, callback) {
@@ -267,9 +263,7 @@ var JSONDB = (function () {
             throw new Error("JSONDB Error: Can't connect to a server asynchronously without a callback.");
         }
 
-        var async = require('async');
-
-        async.setImmediate(function() {
+        setImmediate(function() {
             try {
                 callback(null, require('./Database')(server, username, password, database));
             } catch (e) {
