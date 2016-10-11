@@ -1,7 +1,7 @@
 /**
  * JSONDB - JSON Database Manager
  *
- * Manage JSON files as databases with JSON Query Language (JQL)
+ * Manage JSON files as databases with JSONDB Query Language (JQL)
  *
  * This content is released under the GPL License (GPL-3.0)
  *
@@ -186,9 +186,9 @@ var Query = (function () {
             try {
                 this.queryExecuted = true;
 
-                this.database.bench().mark('Query_(query)_start');
+                this.database.bench().mark('jsondb_(query)_start');
                 var result = this[method](json_array);
-                this.database.bench().mark('Query_(query)_end');
+                this.database.bench().mark('jsondb_(query)_end');
 
                 return result;
             } catch (e) {
@@ -224,9 +224,9 @@ var Query = (function () {
 
                     instance.queryExecuted = true;
 
-                    instance.database.bench().mark('Query_(query)_start');
+                    instance.database.bench().mark('jsondb_(query)_start');
                     instance[method](json_array, callback);
-                    instance.database.bench().mark('Query_(query)_end');
+                    instance.database.bench().mark('jsondb_(query)_end');
                 }
             });
 
@@ -383,6 +383,45 @@ var Query = (function () {
     };
 
     /**
+     * Executes a function and return the result
+     * @param {string} func The query function to execute
+     * @return {*}
+     * @throws {Error}
+     * @private
+     */
+    Query.prototype._parseFunction = function (func, value) {
+        var Util = require('./Util');
+
+        switch (func) {
+            case 'sha1':
+                var Sha = require('jssha');
+                var shaObj = new Sha("SHA-1", "TEXT");
+                shaObj.update(value);
+                return shaObj.getHash("HEX");
+
+            case 'md5':
+                var md5 = require('md5');
+                return md5(value);
+
+            case 'lowercase':
+                return value.toLowerCase();
+
+            case 'uppercase':
+                return value.toUpperCase();
+
+            case 'ucfirst':
+                var first = value[0].toUpperCase();
+                return first + value.substr(1).toLowerCase();
+
+            case 'strlen':
+                return value.length;
+
+            default:
+                throw new Error("JSONDB Query Parse Error: Sorry but the function " + func + "() is not implemented in JQL.");
+        }
+    };
+
+    /**
      * The select() query
      * @param {object}   data
      * @param {function} callback
@@ -496,7 +535,22 @@ var Query = (function () {
             for (linkID in result) {
                 if (result.hasOwnProperty(linkID)) {
                     var line = result[linkID];
-                    temp.push(Util.intersect_key(line, Util.flip(this.parsedQuery.parameters)));
+                    var res = [];
+                    for (i = 0, max = this.parsedQuery.parameters.length; i < max; ++i) {
+                        var field = this.parsedQuery.parameters[i];
+                        if (/\w+\(.*\)/.test(field)) {
+                            var parts = field.match(/(\w+)\((.*)\)/);
+                            var name = parts[1].toLowerCase();
+                            var param = parts[2] || false;
+                            if (param === false) {
+                                Util.throwOrCall(callback, new Error('JSONDB Error: Can\'t uset the function ' + name + ' without parameters'), null);
+                            }
+                            res[field] = this._parseFunction(name, line[param]);
+                        } else {
+                            res[field] = line[field];
+                        }
+                    }
+                    temp.push(res);
                 }
             }
             if (this.parsedQuery.extensions.hasOwnProperty('as')) {
@@ -547,7 +601,7 @@ var Query = (function () {
 
         var Util = require('./Util');
         var rows = Util.values(Util.diff(data.prototype, ['#rowid']));
-        var i, l, key, field, lid, slid, k, vl;
+        var i, l, key, field, lid, slid, k, vl, value;
 
         if (this.parsedQuery.extensions.hasOwnProperty('in')) {
             rows = this.parsedQuery.extensions.in;
@@ -572,7 +626,7 @@ var Query = (function () {
         };
         for (key in this.parsedQuery.parameters) {
             if (this.parsedQuery.parameters.hasOwnProperty(key)) {
-                var value = this.parsedQuery.parameters[key];
+                value = this.parsedQuery.parameters[key];
                 insert['#' + lk_id][rows[key]] = this._parseValue(value, data.properties[rows[key]]);
             }
         }
@@ -663,6 +717,7 @@ var Query = (function () {
                     i++;
                 }
             }
+            i = 0;
         }
 
         for (lid in insert) {
@@ -706,7 +761,6 @@ var Query = (function () {
 
         var lockFile = require('lockfile');
         var _f = require('fs');
-        var async = require('async');
 
         if (null === callback || !(typeof callback === 'function')) {
             try {
@@ -726,10 +780,10 @@ var Query = (function () {
                 throw e;
             }
         } else {
-            async.whilst(
+            Util.whilst(
                 function () {
                     return lockFile.checkSync(path + '.lock');
-                }.bind(this),
+                },
                 function (callback) {
                     setTimeout(function () {
                         callback(null);
@@ -745,6 +799,7 @@ var Query = (function () {
                         } else {
                             _f.writeFile(path, JSON.stringify(data), function (err) {
                                 if (err) {
+                                    lockFile.unlockSync(path + '.lock');
                                     Util.throwOrCall(callback, err, null);
                                 } else {
                                     lockFile.unlock(path + '.lock', function (err) {
@@ -753,12 +808,12 @@ var Query = (function () {
                                         } else {
                                             callback(null, true);
                                         }
-                                    }.bind(this));
+                                    });
                                 }
-                            }.bind(this));
+                            });
                         }
-                    }.bind(this));
-                }.bind(this)
+                    });
+                }
             );
         }
     };
@@ -866,6 +921,7 @@ var Query = (function () {
                     i++;
                 }
             }
+            i = 0;
         }
 
         for (lid in insert) {
@@ -907,7 +963,6 @@ var Query = (function () {
 
         var lockFile = require('lockfile');
         var _f = require('fs');
-        var async = require('async');
 
         if (null === callback || !(typeof callback === 'function')) {
             try {
@@ -927,10 +982,10 @@ var Query = (function () {
                 throw e;
             }
         } else {
-            async.whilst(
+            Util.whilst(
                 function () {
                     return lockFile.checkSync(path + '.lock');
-                }.bind(this),
+                },
                 function (callback) {
                     setTimeout(function () {
                         callback(null);
@@ -946,6 +1001,7 @@ var Query = (function () {
                         } else {
                             _f.writeFile(path, JSON.stringify(data), function (err) {
                                 if (err) {
+                                    lockFile.unlockSync(path + '.lock');
                                     Util.throwOrCall(callback, err, null);
                                 } else {
                                     lockFile.unlock(path + '.lock', function (err) {
@@ -954,12 +1010,12 @@ var Query = (function () {
                                         } else {
                                             callback(null, true);
                                         }
-                                    }.bind(this));
+                                    });
                                 }
-                            }.bind(this));
+                            });
                         }
-                    }.bind(this));
-                }.bind(this)
+                    });
+                }
             );
         }
     };
@@ -1019,7 +1075,6 @@ var Query = (function () {
 
         var lockFile = require('lockfile');
         var _f = require('fs');
-        var async = require('async');
 
         if (null === callback || !(typeof callback === 'function')) {
             try {
@@ -1039,10 +1094,10 @@ var Query = (function () {
                 throw e;
             }
         } else {
-            async.whilst(
+            Util.whilst(
                 function () {
                     return lockFile.checkSync(path + '.lock');
-                }.bind(this),
+                },
                 function (callback) {
                     setTimeout(function () {
                         callback(null);
@@ -1058,6 +1113,7 @@ var Query = (function () {
                         } else {
                             _f.writeFile(path, JSON.stringify(data), function (err) {
                                 if (err) {
+                                    lockFile.unlockSync(path + '.lock');
                                     Util.throwOrCall(callback, err, null);
                                 } else {
                                     lockFile.unlock(path + '.lock', function (err) {
@@ -1066,12 +1122,12 @@ var Query = (function () {
                                         } else {
                                             callback(null, true);
                                         }
-                                    }.bind(this));
+                                    });
                                 }
-                            }.bind(this));
+                            });
                         }
-                    }.bind(this));
-                }.bind(this)
+                    });
+                }
             );
         }
     };
@@ -1197,7 +1253,6 @@ var Query = (function () {
 
         var lockFile = require('lockfile');
         var _f = require('fs');
-        var async = require('async');
 
         if (null === callback || !(typeof callback === 'function')) {
             try {
@@ -1217,10 +1272,10 @@ var Query = (function () {
                 throw e;
             }
         } else {
-            async.whilst(
+            Util.whilst(
                 function () {
                     return lockFile.checkSync(path + '.lock');
-                }.bind(this),
+                },
                 function (callback) {
                     setTimeout(function () {
                         callback(null);
@@ -1236,6 +1291,7 @@ var Query = (function () {
                         } else {
                             _f.writeFile(path, JSON.stringify(data), function (err) {
                                 if (err) {
+                                    lockFile.unlockSync(path + '.lock');
                                     Util.throwOrCall(callback, err, null);
                                 } else {
                                     lockFile.unlock(path + '.lock', function (err) {
@@ -1244,12 +1300,12 @@ var Query = (function () {
                                         } else {
                                             callback(null, true);
                                         }
-                                    }.bind(this));
+                                    });
                                 }
-                            }.bind(this));
+                            });
                         }
-                    }.bind(this));
-                }.bind(this)
+                    });
+                }
             );
         }
     };
@@ -1274,7 +1330,6 @@ var Query = (function () {
 
         var lockFile = require('lockfile');
         var _f = require('fs');
-        var async = require('async');
 
         if (null === callback || !(typeof callback === 'function')) {
             try {
@@ -1294,10 +1349,10 @@ var Query = (function () {
                 throw e;
             }
         } else {
-            async.whilst(
+            Util.whilst(
                 function () {
                     return lockFile.checkSync(path + '.lock');
-                }.bind(this),
+                },
                 function (callback) {
                     setTimeout(function () {
                         callback(null);
@@ -1313,6 +1368,7 @@ var Query = (function () {
                         } else {
                             _f.writeFile(path, JSON.stringify(data), function (err) {
                                 if (err) {
+                                    lockFile.unlockSync(path + '.lock');
                                     Util.throwOrCall(callback, err, null);
                                 } else {
                                     lockFile.unlock(path + '.lock', function (err) {
@@ -1321,12 +1377,12 @@ var Query = (function () {
                                         } else {
                                             callback(null, true);
                                         }
-                                    }.bind(this));
+                                    });
                                 }
-                            }.bind(this));
+                            });
                         }
-                    }.bind(this));
-                }.bind(this)
+                    });
+                }
             );
         }
     };
@@ -1441,55 +1497,66 @@ var Query = (function () {
             for (var lid in result) {
                 if (result.hasOwnProperty(lid)) {
                     var line = result[lid];
+                    var value = line[filter.field];
+                    if (/\w+\(.*\)/.test(filter.field)) {
+                        var parts = filter.field.match(/(\w+)\((.*)\)/);
+                        var name = parts[1].toLowerCase();
+                        var param = parts[2] || false;
+                        if (param === false) {
+                            throw new Error('JSONDB Error: Can\'t uset the function ' + name + ' without parameters');
+                        }
+                        value = this._parseFunction(name, line[param]);
+                        filter.field = param;
+                    }
                     if (!line.hasOwnProperty(filter.field)) {
-                        throw new Error("JSONDB Error: The field \"" + filter.field + "\" doesn't existsSync in the table \"" + this.table + "\".");
+                        throw new Error("JSONDB Error: The field \"" + filter.field + "\" doesn't exists in the table \"" + this.table + "\".");
                     }
                     switch (filter['operator']) {
                         case '<':
-                            if (line[filter['field']] < filter['value']) {
+                            if (value < filter['value']) {
                                 temp[line['#rowid']] = line;
                             }
                             break;
 
                         case '<=':
-                            if (line[filter['field']] <= filter['value']) {
+                            if (value <= filter['value']) {
                                 temp[line['#rowid']] = line;
                             }
                             break;
 
                         case '=':
-                            if (line[filter['field']] === filter['value']) {
+                            if (value === filter['value']) {
                                 temp[line['#rowid']] = line;
                             }
                             break;
 
                         case '>=':
-                            if (line[filter['field']] >= filter['value']) {
+                            if (value >= filter['value']) {
                                 temp[line['#rowid']] = line;
                             }
                             break;
 
                         case '>':
-                            if (line[filter['field']] > filter['value']) {
+                            if (value > filter['value']) {
                                 temp[line['#rowid']] = line;
                             }
                             break;
 
                         case '!=':
                         case '<>':
-                            if (line[filter['field']] !== filter['value']) {
+                            if (value !== filter['value']) {
                                 temp[line['#rowid']] = line;
                             }
                             break;
 
                         case '%=':
-                            if (0 === (line[filter['field']] % filter['value'])) {
+                            if (0 === (value % filter['value'])) {
                                 temp[line['#rowid']] = line;
                             }
                             break;
 
                         case '%!':
-                            if (0 !== (line[filter['field']] % filter['value'])) {
+                            if (0 !== (value % filter['value'])) {
                                 temp[line['#rowid']] = line;
                             }
                             break;
