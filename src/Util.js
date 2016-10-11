@@ -1,7 +1,7 @@
 /**
  * JSONDB - JSON Database Manager
  *
- * Manage JSON files as databases with JSON Query Language (JQL)
+ * Manage JSON files as databases with JSONDB Query Language (JQL)
  *
  * This content is released under the GPL License (GPL-3.0)
  *
@@ -307,13 +307,14 @@ var Util = (function () {
         length = length || l;
 
         var ret = {};
-        var i = 0;
+        var i = j = 0;
         for (var key in object) {
             if (object.hasOwnProperty(key)) {
-                if (i > offset && i < length) {
+                if (i >= offset && j < length) {
                     ret[key] = object[key];
+                    ++j;
                 }
-                i++;
+                ++i;
             }
         }
         return ret;
@@ -327,7 +328,9 @@ var Util = (function () {
      */
     Util.prototype.extends = function (child, parent) {
         for (var key in parent) {
-            if (parent.hasOwnProperty(key)) child[key] = parent[key];
+            if (parent.hasOwnProperty(key)) {
+                child[key] = parent[key];
+            }
         }
         function Ctor() {
             this.constructor = child;
@@ -478,6 +481,39 @@ var Util = (function () {
      */
     Util.prototype._getDatabasePath = function (server, database) {
         return server + '/' + database;
+    };
+
+    /**
+     * Add 0 to a number lower than 10
+     * @param {number|string} number
+     * @return {string}
+     */
+    Util.prototype.zeropad = function (number) {
+        number = parseInt(number);
+        if (number < 10 && number >= 0) {
+            number = '0' + number;
+        }
+        return number;
+    };
+
+    /**
+     * Asynchronous while
+     * @param {function} condition The while condition
+     * @param {function} bridge    The function used for recursion
+     * @param {function} callback  The callback function
+     */
+    Util.prototype.whilst = function(condition, bridge, callback) {
+        try {
+            if (condition() === false) {
+                return callback(null);
+            }
+            return bridge(function() {
+                this.whilst(condition, bridge, callback);
+            }.bind(this));
+        }
+        catch (e) {
+            return callback(e);
+        }
     };
 
     return Util;
