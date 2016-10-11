@@ -8,3 +8,5 @@ jsconfig.json
 _site/
 *.sln
 servers/
+terminal.glue
+test.js
