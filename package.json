@@ -27,9 +27,9 @@
     "node": "*"
   },
   "dependencies": {
-    "async": "^2.0.1",
     "jssha": "~2.1.0",
     "lockfile": "~1.0.2",
+    "md5": "^2.1.0",
     "mkdirp": "~0.5.1"
   },
   "license": "GPL-3.0",
