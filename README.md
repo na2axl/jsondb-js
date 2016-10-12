@@ -634,7 +634,7 @@ After the execution of (one of) these scripts, the table **users** will be a .js
             "last_name":"Axel",
             "username":"na2axl",
             "mail":"ax.lnana@outlook.com",
-            "password":"00%a_ComPLEx-PassWord%00",
+            "password":"589d3c90f3f75752673ab0ccb2690832f2e15610",
             "website":null,
             "activated":false,
             "banished":false
