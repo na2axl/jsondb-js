@@ -11,7 +11,7 @@ language named **JQL** (**J**SONDB **Q**uery **L**anguage).
 ## Features
 * Database management with servers, databases and tables
 * Secure connections to servers with username and password
-* **NEW**: Sync and async operations
+* Sync and async operations
 * Easy custom query language
 * Supported JQL queries:
     * select()
@@ -279,39 +279,39 @@ db.query('table_name.query(parameters,...).extension1().extension2()...');
 #### Query Examples
 
 ##### select()
-Select all from table `users` where `pseudo` = `id` and `password` = `pass` or where `mail` = `id` and `password` = `pass`
+Select all from table `users` where `username` = `id` and `password` = `pass` or where `mail` = `id` and `password` = `pass`
 ```javascript
 var id = JSONDB.quote(form_data.id);
 var pass = JSONDB.quote(form_data.password);
-db.query("users.select(*).where(pseudo=" + id + ",password=" + pass + ").where(mail=" + id + ",password=" + pass + ")");
+db.query("users.select(*).where(username=" + id + ",password=" + pass + ").where(mail=" + id + ",password=" + pass + ")");
 ```
 
-Select `pseudo` and `mail` from table `users` where `activated` = `true`, order the results by `pseudo` with `desc`endant method, limit the results to the `10` users after the `5`th.
+Select `username` and `mail` from table `users` where `activated` = `true`, order the results by `username` with `desc`endant method, limit the results to the `10` users after the `5`th.
 ```javascript
-db.query("users.select(pseudo,mail).where(activated=true).order(pseudo,desc).limit(5,10)");
+db.query("users.select(username,mail).where(activated=true).order(username,desc).limit(5,10)");
 ```
 
 ##### insert()
 Insert a new user in table `users`
 ```javascript
-var pseudo = JSONDB.quote(form_data.pseudo);
+var username = JSONDB.quote(form_data.username);
 var pass = JSONDB.quote(form_data.password);
 var mail = JSONDB.quote(form_data.mail);
-db.query("users.insert(" + pseudo + "," + pass + "," + mail + ").in(pseudo,password,mail)");
+db.query("users.insert(" + username + "," + pass + "," + mail + ").in(username,password,mail)");
 ```
 Multiple insertion...
 ```javascript
-db.query("users.insert(" + pseudo1 + "," + pass1 + "," + mail1 + ").and(" + pseudo2 + "," + pass2 + "," + mail2 + ").and(" + pseudo3 + "," + pass3 + "," + mail3 + ").in(pseudo,password,mail)");
+db.query("users.insert(" + username1 + "," + pass1 + "," + mail1 + ").and(" + username2 + "," + pass2 + "," + mail2 + ").and(" + username3 + "," + pass3 + "," + mail3 + ").in(username,password,mail)");
 ```
 
 ##### replace()
 Replace information of the first user
 ```javascript
-db.query("users.replace(" + pseudo + "," + pass + "," + mail + ").in(pseudo,password,mail)");
+db.query("users.replace(" + username + "," + pass + "," + mail + ").in(username,password,mail)");
 ```
 Multiple replacement...
 ```javascript
-db.query("users.replace(" + pseudo1 + "," + pass1 + "," + mail1 + ").and(" + pseudo2 + "," + pass2 + "," + mail2 + ").and(" + pseudo3 + "," + pass3 + "," + mail3 + ").in(pseudo,password,mail)");
+db.query("users.replace(" + username1 + "," + pass1 + "," + mail1 + ").and(" + username2 + "," + pass2 + "," + mail2 + ").and(" + username3 + "," + pass3 + "," + mail3 + ").in(username,password,mail)");
 ```
 
 ##### delete()
@@ -325,7 +325,7 @@ db.query("users.delete().where(banished = true)");
 ```
 Delete a specific user
 ```javascript
-db.query("users.delete().where(pseudo = " + pseudo + ", mail = " + mail + ")");
+db.query("users.delete().where(username = " + username + ", mail = " + mail + ")");
 ```
 
 ##### update()
@@ -335,7 +335,7 @@ db.query("users.update(activated).with(true)");
 ```
 Update my information ;-)
 ```javascript
-db.query("users.update(mail, password, activated, banished).with(" + mail + ", " + pseudo + ", true, false).where(pseudo = 'na2axl')");
+db.query("users.update(mail, password, activated, banished).with(" + mail + ", " + username + ", true, false).where(username = 'na2axl')");
 ```
 
 ##### truncate()
@@ -353,6 +353,64 @@ Count all users and group by `activated`
 ```javascript
 db.query("users.count(*).as(users_nb).group(activated)");
 ```
+
+#### Query functions
+
+##### sha1()
+Returns the sha1 of a text. **Exemple**: Update an old password by a new one:
+```javascript
+var old_password = your_sha1_encrypt_function(form_data.old);
+var new_password = form_data.new;
+var query = db.prepare("users.insert(sha1(:new)).in(password).where(sha1(password) = :old)");
+query.bindValue(':new', new_password);
+query.bindValue(':old', old_password);
+query.execute();
+```
+
+##### md5()
+Returns the md5 of a text. **Exemple**:
+```javascript
+var result = db.query("users.select(md5(username)).as(username_hash).where(username = 'na2axl')");
+```
+
+##### time()
+Returns the timestamp.
+
+##### now()
+Returns the date of today in the form `year-month-day h:m:s`. You can change the form of the date by using identifiers as parameters:
+| Identifier | Value |
+|------------|-------|
+| %a | The day in 3 letters (Mon) |
+| %A | The full day (Monday) |
+| %d | The day of the month with a leading zero (06) |
+| %m | The month of the year with a leading zero (12) |
+| %e | The month of the wear without a leading zero |
+| %w | The day of the week without a leading zero |
+| %W | The day of the week with a leading zero |
+| %b | The month in 3 letters (Jan) |
+| %B | The full month (January) |
+| %y | The last two digits of the year (16) |
+| %Y | The full year (2016) |
+| %H | The hour with a leading 0 (09) |
+| %k | The hour without a leading 0 (9) |
+| %M | The minutes |
+| %S | The seconds |
+**Exemple**:
+```javascript
+db.query("users.update(last_acitity).with(now('%d/%m/%Y %H:%M:%S').where(username = 'na2axl'))");
+```
+
+##### lowercase()
+Returns the lower case version of a text.
+
+##### uppercase()
+Returns the upper case version of a text.
+
+##### ucfirst()
+Upper case the first letter and lower case all others in a text.
+
+##### strlen()
+Returns the number of characters in a text.
 
 #### Supported JQL operators
 
@@ -387,10 +445,10 @@ if (!db.databaseExists('test_database')) {
 db.setDatabase('test_database');
 
 if (!db.tableExists('users')) {
-    db.createTable('users', { 'id': {'type': 'int', 'auto_increment': true},
+    db.createTable('users', { 'id': {'type': 'int', 'auto_increment': true, 'primary_key': true},
                               'name': {'type': 'string', 'max_length': 30, 'not_null': true},
-                              'surname': {'type': 'string', 'max_length': 30, 'not_null': true},
-                              'pseudo': {'type': 'string', 'max_length': 15, 'unique_key': true},
+                              'last_name': {'type': 'string', 'max_length': 30, 'not_null': true},
+                              'username': {'type': 'string', 'max_length': 15, 'unique_key': true},
                               'mail': {'type': 'string', 'unique_key': true},
                               'password': {'type': 'string', 'not_null': true},
                               'website': {'type': 'string'},
@@ -399,10 +457,10 @@ if (!db.tableExists('users')) {
 }
 
 // A prepared query
-var query = db.prepare('users.insert(:name, :sname, :pseudo, :mail, :pass).in(name, surname, pseudo, mail, password)');
+var query = db.prepare("users.insert(:name, :sname, :username, :mail, sha1(:pass)).in(name, last_name, username, mail, password)");
 query.bindValue(':name', 'Nana', JSONDB.PARAM_STRING);
 query.bindValue(':sname', 'Axel', JSONDB.PARAM_STRING);
-query.bindValue(':pseudo', 'na2axl', JSONDB.PARAM_STRING);
+query.bindValue(':username', 'na2axl', JSONDB.PARAM_STRING);
 query.bindValue(':mail', 'ax.lnana@outlook.com', JSONDB.PARAM_STRING);
 query.bindValue(':pass', '00%a_ComPLEx-PassWord%00', JSONDB.PARAM_STRING);
 query.execute();
@@ -410,16 +468,16 @@ query.execute();
 // After some insertions...
 
 // Select all users
-var results = db.query('users.select(id, name, surname, pseudo)');
+var results = db.query('users.select(id, name, last_name, username)');
 
 // Fetch with class mapping
 var User = function () {};
 User.prototype.id = 0;
 User.prototype.name = '';
-User.prototype.surname = '';
-User.prototype.pseudo = '';
+User.prototype.last_name = '';
+User.prototype.username = '';
 User.prototype.getInfo = function () {
-    return "The user with ID: " + this.id + "has the name: " + this.name + " " + this.surname + " and the username " + this.pseudo + ".";
+    return "The user with ID: " + this.id + "has the name: " + this.name + " " + this.last_name + " and the username " + this.username + ".";
 };
 
 while (result = results.fetch(JSONDB.FETCH_CLASS, User)) {
@@ -437,10 +495,10 @@ var jdb = new JSONDB();
 var User = function () {};
 User.prototype.id = 0;
 User.prototype.name = '';
-User.prototype.surname = '';
-User.prototype.pseudo = '';
+User.prototype.last_name = '';
+User.prototype.username = '';
 User.prototype.getInfo = function () {
-    return "The user with ID: " + this.id + " has the name: " + this.name + " " + this.surname + " and the username " + this.pseudo + ".";
+    return "The user with ID: " + this.id + " has the name: " + this.name + " " + this.last_name + " and the username " + this.username + ".";
 };
 
 jdb.async.serverExists('test', function (exists) {
@@ -461,10 +519,10 @@ jdb.async.serverExists('test', function (exists) {
 
             db.async.tableExists('users', function (exists) {
                 if (!exists) {
-                    db.createTable('users', { 'id': {'type': 'int', 'auto_increment': true},
+                    db.createTable('users', { 'id': {'type': 'int', 'auto_increment': true, 'primary_key': true},
                         'name': {'type': 'string', 'max_length': 30, 'not_null': true},
-                        'surname': {'type': 'string', 'max_length': 30, 'not_null': true},
-                        'pseudo': {'type': 'string', 'max_length': 15, 'unique_key': true},
+                        'last_name': {'type': 'string', 'max_length': 30, 'not_null': true},
+                        'username': {'type': 'string', 'max_length': 15, 'unique_key': true},
                         'mail': {'type': 'string', 'unique_key': true},
                         'password': {'type': 'string', 'not_null': true},
                         'website': {'type': 'string'},
@@ -473,13 +531,13 @@ jdb.async.serverExists('test', function (exists) {
                 }
 
                 // A prepared query
-                db.async.prepare('users.insert(:name, :sname, :pseudo, :mail, :pass).in(name, surname, pseudo, mail, password)', function (error, query) {
+                db.async.prepare("users.insert(:name, :sname, :username, :mail, sha1(:pass)).in(name, last_name, username, mail, password)", function (error, query) {
                     if (error) {
                         throw error;
                     }
                     query.bindValue(':name', 'Nana', JSONDB.PARAM_STRING);
                     query.bindValue(':sname', 'Axel', JSONDB.PARAM_STRING);
-                    query.bindValue(':pseudo', 'na2axl', JSONDB.PARAM_STRING);
+                    query.bindValue(':username', 'na2axl', JSONDB.PARAM_STRING);
                     query.bindValue(':mail', 'ax.lnana@outlook.com', JSONDB.PARAM_STRING);
                     query.bindValue(':pass', '00%a_ComPLEx-PassWord%00', JSONDB.PARAM_STRING);
                     query.async.execute(function (error , result) {
@@ -491,7 +549,7 @@ jdb.async.serverExists('test', function (exists) {
                         // After some insertions...
 
                         // Select all users
-                        db.async.query('users.select(id, name, surname, pseudo)', function (error, results) {
+                        db.async.query('users.select(id, name, last_name, username)', function (error, results) {
                             if (error) {
                                 throw error;
                             }
@@ -514,13 +572,84 @@ jdb.async.serverExists('test', function (exists) {
 });
 ```
 
+After the execution of (one of) these scripts, the table **users** will be a .json file which will contain:
+```json
+{
+    "prototype": ["#rowid","id","name","last_name","username","mail","password","website","activated","banished"],
+    "properties": {
+        "last_insert_id":1,
+        "last_valid_row_id":1,
+        "last_link_id":1,
+        "primary_keys":["id"],
+        "unique_keys":["id","username","mail"],
+        "id": {
+            "type":"int",
+            "auto_increment":true,
+            "primary_key":true,
+            "unique_key":true,
+            "not_null":true
+        },
+        "name": {
+            "type":"string",
+            "max_length":30,
+            "not_null":true
+        },
+        "last_name": {
+            "type":"string",
+            "max_length":30,
+            "not_null":true
+        },
+        "username": {
+            "type":"string",
+            "max_length":15,
+            "unique_key":true,
+            "not_null":true
+        },
+        "mail": {
+            "type":"string",
+            "unique_key":true,
+            "not_null":true
+        },
+        "password": {
+            "type":"string",
+            "not_null":true
+        },
+        "website": {
+            "type":"string"
+        },
+        "activated": {
+            "type":"bool",
+            "default":false
+        },
+        "banished": {
+            "type":"bool",
+            "default":false
+        }
+    },
+    "data": {
+        "#1": {
+            "#rowid":1,
+            "id":1,
+            "name":"Nana",
+            "last_name":"Axel",
+            "username":"na2axl",
+            "mail":"ax.lnana@outlook.com",
+            "password":"00%a_ComPLEx-PassWord%00",
+            "website":null,
+            "activated":false,
+            "banished":false
+        }
+    }
+}
+```
+
 ## Contribution
 Found a bug? Have a feature request? Want to contribute to this project? Please, feel free to create
-a [new issue](https://github.com/na2axl/jsondb-js/issues/new) on GitHub, or fork this code, hack it,
+a [new issue](https://github.com/na2axl/jsondb-js/issues/new "Open a new issue") on GitHub, or fork this code, hack it,
 and make a pull request !
 
 ## Authors
-* **Axel Nana**: <ax.lnana@outlook.com> - [https://tutorialcenters.tk](https://tutorialcenters.tk)
+* **Axel Nana**: <ax.lnana@outlook.com> - [https://tutorialcenters.tk](https://tutorialcenters.tk "Write your tutorial !")
 
 ## Contributors
 No one... maybe you ! 
