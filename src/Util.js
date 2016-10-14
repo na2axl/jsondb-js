@@ -37,10 +37,9 @@ var Util = (function () {
      * @return {string}
      */
     Util.prototype.crypt = function (string) {
-        var Sha = require('jssha');
-        var shaObj = new Sha("SHA-1", "TEXT");
-        shaObj.update(string + Util.cryptSalt);
-        return shaObj.getHash("HEX");
+        var shasum = require('crypto').createHash('sha1');
+        shasum.update(string + Util.cryptSalt);
+        return shasum.digest("HEX");
     };
 
     /**

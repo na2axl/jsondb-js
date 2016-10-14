@@ -497,10 +497,9 @@ var QueryParser = (function () {
                 if (params.length > 1) {
                     throw new Error("JSONDB Query Parse Error: Too much parameters for the function sha1(), only one is required.");
                 }
-                var Sha = require('jssha');
-                var shaObj = new Sha("SHA-1", "TEXT");
-                shaObj.update(params[0]);
-                return shaObj.getHash("HEX");
+                var shasum = require('crypto').createHash('sha1');
+                shasum.update(params[0]);
+                return shasum.digest("HEX");
 
             case 'md5':
                 if (params === false) {
@@ -509,8 +508,9 @@ var QueryParser = (function () {
                 if (params.length > 1) {
                     throw new Error("JSONDB Query Parse Error: Too much parameters for the function md5(), only one is required.");
                 }
-                var md5 = require('md5');
-                return md5(params[0]);
+                var md5 = require('crypto').createHash('md5');
+                md5.update(params[0]);
+                return md5.digest("HEX");
 
             case 'time':
                 if (params !== false) {
