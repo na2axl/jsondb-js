@@ -213,7 +213,6 @@ var Database = (function () {
 
         var _f = require('fs');
         var Util = require('./Util');
-        var mkdirp = require('mkdirp');
         var path = Util._getDatabasePath(this.server, name);
 
         if (Util.existsSync(path)) {
@@ -221,7 +220,7 @@ var Database = (function () {
             throw new Error("Database Error: Can't create the database \"" + name + "\" in the server \"" + this.server + "\", the database already exist.");
         }
 
-        mkdirp.sync(path);
+        Util.mkdirSync(path);
 
         if (!_f.lstatSync(path).isDirectory()) {
             this.benchmark.mark('Database_(createDatabase)_end');
@@ -263,7 +262,6 @@ var Database = (function () {
 
         var _f = require('fs');
         var Util = require('./Util');
-        var mkdirp = require('mkdirp');
         var path = Util._getDatabasePath(instance.server, name);
 
         setImmediate(function() {
@@ -272,10 +270,10 @@ var Database = (function () {
                     instance.benchmark.mark('Database_(createDatabase)_end');
                     callback(new Error("Database Error: Can't create the database \"" + name + "\" in the server \"" + instance.server + "\", the database already exist."));
                 } else {
-                    mkdirp(path, function (err) {
-                        if (err || !_f.lstatSync(path).isDirectory()) {
+                    Util.mkdir(path, function (err) {
+                        if (err) {
                             instance.benchmark.mark('Database_(createDatabase)_end');
-                            callback(new Error("Database Error: Can't create the database \"" + name + "\" in the server \"" + instance.server + "\"."));
+                            callback(new Error("Database Error: Can't create the database \"" + name + "\" in the server \"" + instance.server + "\""));
                         }
                         _f.chmod(path, 0x1ff, function (err) {
                             if (err) {

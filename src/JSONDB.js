@@ -95,7 +95,6 @@ var JSONDB = (function () {
         connect = connect || false;
 
         var _f = require('fs');
-        var mkdirp = require('mkdirp');
         var _p = require('path');
         var Util = require('./Util');
 
@@ -105,7 +104,7 @@ var JSONDB = (function () {
                 throw new Error("JSONDB Error: Can't create the server at \"" + path + "\", the directory already exists.");
             }
 
-            mkdirp.sync(path);
+            Util.mkdirSync(path);
 
             if (!_f.lstatSync(path).isDirectory()) {
                 throw new Error("JSONDB Error: Can't create the server at \"" + path + "\". Maybe you don't have write access.");
@@ -180,7 +179,6 @@ var JSONDB = (function () {
 
         setImmediate(function() {
             var _f = require('fs');
-            var mkdirp = require('mkdirp');
             var _p = require('path');
             var Util = require('./Util');
 
@@ -190,7 +188,7 @@ var JSONDB = (function () {
                     if (exists && _f.lstatSync(path).isDirectory()) {
                         callback(new Error("JSONDB Error: Can't create the server at \"" + path + "\", the directory already exists."));
                     } else {
-                        mkdirp(path, function (err) {
+                        Util.mkdir(path, function (err) {
                             if (err) {
                                 callback(new Error("JSONDB Error: Can't create the server at \"" + path + "\", the directory can't be created. " + err));
                             }
