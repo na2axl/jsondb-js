@@ -38,8 +38,12 @@ jdb.async.serverExists('__npm_test_server', function(exists) {
                     console.log("Can't create the test table (with no primary keys)");
                     throw err;
                 }
-
                 console.log('Test table created ! (with no primary keys)');
+
+                console.log('Sync start... Insertion in test table (with no primary keys)');
+                var insert = database.query('__npm_test_table_npk.insert(\'hello\', 0)');
+                console.log('Sync end for test table (with no primary keys)... Result = ' + insert);
+
                 console.log('Async start... Replacements in test table (with no primary keys)');
                 database.async.query('__npm_test_table_npk.replace(\'nice\', 2)', function (err, res) {
                     if (err) {
@@ -48,10 +52,6 @@ jdb.async.serverExists('__npm_test_server', function(exists) {
                     console.log('Async end for test table (with no primary keys)... Result = ' + res);
                 });
                 console.log('Async not ended... But this message will output (normally... is async...)');
-
-                console.log('Sync start... Insertion in test table (with no primary keys)');
-                var insert = database.query('__npm_test_table_npk.insert(\'hello\', 0)');
-                console.log('Sync end for test table (with no primary keys)... Result = ' + insert);
 
                 // database.query('__npm_test_table_npk.delete()');
 
