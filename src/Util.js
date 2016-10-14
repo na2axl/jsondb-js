@@ -516,6 +516,65 @@ var Util = (function () {
         }
     };
 
+    /**
+     * Create a new directory synchronously
+     * @param {string} path      The path of the new directory
+     * @throws {Error}
+     * @return {boolean}
+     */
+    Util.prototype.mkdirSync = function (path) {
+        var _f = require('fs');
+        var _p = require('path');
+
+        path = _p.normalize(path);
+
+        if (!this.existsSync(_p.dirname(path))) {
+            this.mkdirSync(_p.dirname(path));
+        }
+
+        if (_f.mkdirSync(path, 0x1ff) === false) {
+            throw new Error('Cannot create directory "' + path + '"');
+        }
+        else {
+            _f.chmodSync(path, 0x1ff);
+            return true;
+        }
+    };
+
+    /**
+     * Create a new directory asynchronously
+     * @param {string}   path      The path of the new directory
+     * @param {function} callback  The callback
+     * @throws {Error}
+     * @return {boolean}
+     */
+    Util.prototype.mkdir = function (path, callback) {
+        var _f = require('fs');
+        var _p = require('path');
+
+        path = _p.normalize(path);
+        callback = callback || function() {};
+
+        this.exists(path, function(exists) {
+            if (!exists) {
+                this.mkdir(_p.dirname(path));
+            }
+
+            _f.mkdir(path, 0x1ff, function(error) {
+                if (error) {
+                    callback(error);
+                }
+                _f.chmod(path, 0x1ff, function(error) {
+                    if (error) {
+                        callback(error);
+                    }
+                    callback(null);
+                });
+            })
+        }.bind(this));
+
+    };
+
     return Util;
 })();
 
