@@ -1,6 +1,6 @@
 {
   "name": "jsondb-js",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Manage JSON files as databases with JSONDB Query Language (JQL)",
   "directories": {
     "src": "src"
