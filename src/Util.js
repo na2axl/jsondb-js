@@ -451,13 +451,12 @@ var Util = (function () {
         path = path || this._getTablePath();
         var _f = require('fs');
         var lockFile = require('lockfile');
-        var Util = require('./Util');
         var ret;
 
         var checkIfLocked = (function (_this) {
             return function () {
                 if (lockFile.checkSync(_this._getTablePath() + '.lock')) {
-                    Util.waitFor(100);
+                    _this.waitFor(100);
                     checkIfLocked();
                 } else {
                     lockFile.lockSync(path + '.lock');
