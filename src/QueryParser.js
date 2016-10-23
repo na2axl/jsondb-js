@@ -284,7 +284,12 @@ var QueryParser = (function () {
                 var row_val = condition.split(operator);
                 filters.operator = operator;
                 filters.field = row_val[0].replace(/['"`]/g, '').trim();
-                filters.value = this._parseValue(row_val[1]);
+                if (row_val.length > 2) {
+                    filters.value = this._parseValue(row_val.slice(1).join(operator));
+                }
+                else {
+                    filters.value = this._parseValue(row_val[1]);
+                }
                 break;
             }
         }
