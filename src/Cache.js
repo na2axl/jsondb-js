@@ -7,25 +7,23 @@
  *
  * Copyright (c) 2016, Centers Technologies
  *
- * @package	   JSONDB
- * @author	   Nana Axel
+ * @package    JSONDB
+ * @author     Nana Axel
  * @copyright  Copyright (c) 2016, Centers Technologies
- * @license	   http://spdx.org/licenses/GPL-3.0 GPL License
+ * @license    http://spdx.org/licenses/GPL-3.0 GPL License
  * @filesource
  */
 
 /**
  * Class Cache
  *
- * @package		Database
+ * @package     Database
  * @subpackage  Utilities
  * @category    Cache
- * @author		Nana Axel
+ * @author      Nana Axel
  */
 var Cache = (function () {
-    function Cache(db) {
-        this.setDatabase(db);
-    }
+    function Cache() { }
 
     /**
      * Cache array
@@ -33,17 +31,6 @@ var Cache = (function () {
      * @static {object}
      */
     Cache.cache = {};
-
-    /**
-     * Changes the Database instance used
-     *
-     * @param {Query} query Query class' instance
-     * @return {Cache}
-     */
-    Cache.prototype.setDatabase = function (query) {
-        this.query = query;
-        return this;
-    };
 
     /**
      * Gets cached data
@@ -60,7 +47,7 @@ var Cache = (function () {
         }
 
         if (!Cache.cache.hasOwnProperty(path)) {
-            var Util = require('./Util');
+            var Util = new (require('./Util'))();
             Cache.cache[path] = Util.getTableData(path);
         }
 
@@ -78,7 +65,7 @@ var Cache = (function () {
         if (null !== data) {
             Cache.cache[path] = data;
         } else {
-            var Util = require('./Util');
+            var Util = new (require('./Util'))();
             Cache.cache[path] = Util.getTableData(path);
         }
     };
@@ -96,6 +83,4 @@ var Cache = (function () {
 })();
 
 // Exports the module
-module.exports = function (db) {
-    return new Cache(db);
-};
+module.exports = new Cache();

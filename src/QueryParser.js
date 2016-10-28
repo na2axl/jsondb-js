@@ -130,7 +130,7 @@ var QueryParser = (function () {
         }
 
         // Getting the action's parameters
-        this.parsedQuery.parameters = queryParts[1].replace(this.parsedQuery.action, '').replace(/\((.+)\)/, '$1').trim();
+        this.parsedQuery.parameters = queryParts[1].replace(/\w+\((.*)\)/, '$1').trim();
         this.parsedQuery.parameters = this.parsedQuery.parameters.replace(/\(([^)]*)\)/g, function (str) {
             return str.replace(/,/g, ';');
         });
@@ -149,10 +149,12 @@ var QueryParser = (function () {
         // Getting query's extensions
         this.parsedQuery.extensions = {};
         var extensions = {};
-        for (var index in queryParts.slice(2)) {
-            var extension = queryParts.slice(2)[index];
+        for (var i = 2, l = queryParts.length; i < l; i++) {
+            var extension = queryParts[i].trim();
             var name = extension.replace(/\(.*\)/, '');
-            var string = extension.replace(name, '').replace(/\((.*)\)/, '$1').trim();
+            var string = extension.replace(new RegExp(name + "\((.*)\)"), '$1').trim().replace(/\(([^)]*)\)/g, function (str) {
+                return str.replace(/,/g, ';');
+            });
             switch (name.toLowerCase()) {
                 case 'order':
                     extensions.order = this._parseOrderExtension(string);
@@ -492,7 +494,7 @@ var QueryParser = (function () {
             };
         })(this))) || false;
 
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
 
         switch (name) {
             case 'sha1':
@@ -615,7 +617,7 @@ var QueryParser = (function () {
         } else if (!!~value.indexOf(':JSONDB::TO_NULL:') || value.toLowerCase() === 'null') {
             return null;
         } else if (!!~value.indexOf(':JSONDB::TO_ARRAY:')) {
-            return require('./Util').unserialize(this._parseValue(value.replace(':JSONDB::TO_ARRAY:', '')));
+            return (new (require('./Util'))()).unserialize(this._parseValue(value.replace(':JSONDB::TO_ARRAY:', '')));
         } else if (trim_value[0] === "'" && trim_value[trim_value.length - 1] === "'") {
             return trim_value.replace(new RegExp("[" + QueryParser.TRIM_CHAR + "]", "g"), '').trim().replace(/\{\{quot}}|\{\{comm}}|\{\{dot}}|\{\{pto}}|\{\{ptc}}|\{\{semi}}/ig, function (c) {
                 switch (c) {
@@ -649,4 +651,4 @@ var QueryParser = (function () {
 })();
 
 // Exports the module
-module.exports = new QueryParser();
+module.exports = QueryParser;

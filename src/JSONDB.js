@@ -23,7 +23,9 @@
  * @author      Nana Axel
  */
 var JSONDB = (function () {
-    function JSONDB() { }
+    function JSONDB() {
+        this.async._i = this;
+    }
 
     /**
      * Parse value to string
@@ -96,7 +98,7 @@ var JSONDB = (function () {
 
         var _f = require('fs');
         var _p = require('path');
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
 
         var path = _p.normalize(_p.dirname(__dirname) + '/servers/' + name);
         if (null !== path && username !== null) {
@@ -137,7 +139,7 @@ var JSONDB = (function () {
         }
 
         var _p = require('path');
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
 
         var path = _p.normalize(_p.dirname(__dirname) + '/servers/' + name);
 
@@ -158,7 +160,7 @@ var JSONDB = (function () {
      * @return {Database}
      */
     JSONDB.prototype.connect = function (server, username, password, database) {
-        return require('./Database')(server, username, password, database);
+        return new (require('./Database'))(server, username, password, database);
     };
 
     /**
@@ -169,6 +171,10 @@ var JSONDB = (function () {
      * @param {function} callback The callback
      */
     JSONDB.prototype.async.createServer = function (name, username, password, callback) {
+        this._i.createServerAsync(name, username, password, callback);
+    };
+
+    JSONDB.prototype.createServerAsync = function(name, username, password, callback) {
         name = name || null;
         username = username || null;
         callback = callback || null;
@@ -180,7 +186,7 @@ var JSONDB = (function () {
         setImmediate(function() {
             var _f = require('fs');
             var _p = require('path');
-            var Util = require('./Util');
+            var Util = new (require('./Util'))();
 
             var path = _p.normalize(_p.dirname(__dirname) + '/servers/' + name);
             if (null !== path && username !== null) {
@@ -215,6 +221,10 @@ var JSONDB = (function () {
      * @param {function} callback The callback
      */
     JSONDB.prototype.async.serverExists = function (name, callback) {
+        this._i.serverExistsAsync(name, callback);
+    };
+
+    JSONDB.prototype.serverExistsAsync = function(name, callback) {
         callback = callback || null;
 
         if (null === callback || !(typeof callback === 'function')) {
@@ -229,7 +239,7 @@ var JSONDB = (function () {
             }
 
             var _p = require('path');
-            var Util = require('./Util');
+            var Util = new (require('./Util'))();
 
             var path = _p.normalize(_p.dirname(__dirname) + '/servers/' + name);
 
@@ -250,6 +260,10 @@ var JSONDB = (function () {
      * @param {function}        callback The callback
      */
     JSONDB.prototype.async.connect = function (server, username, password, database, callback) {
+        this._i.connectAsync(server, username, password, database, callback);
+    };
+
+    JSONDB.prototype.connectAsync = function (server, username, password, database, callback) {
         callback = callback || null;
 
         if (typeof database === 'function') {
@@ -263,7 +277,7 @@ var JSONDB = (function () {
 
         setImmediate(function() {
             try {
-                callback(null, require('./Database')(server, username, password, database));
+                callback(null, new (require('./Database'))(server, username, password, database));
             } catch (e) {
                 callback(e, null);
             }
@@ -276,7 +290,7 @@ var JSONDB = (function () {
      * @return {string}
      */
     JSONDB.quote = function (value) {
-        return require('./QueryParser').quote(value);
+        return new (require('./QueryParser'))().quote(value);
     };
 
     return JSONDB;

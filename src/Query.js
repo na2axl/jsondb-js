@@ -7,35 +7,35 @@
  *
  * Copyright (c) 2016, Centers Technologies
  *
- * @package	   JSONDB
- * @author	   Nana Axel
+ * @package    JSONDB
+ * @author     Nana Axel
  * @copyright  Copyright (c) 2016, Centers Technologies
- * @license	   http://opensource.org/licenses/MIT MIT License
+ * @license    http://opensource.org/licenses/MIT MIT License
  * @filesource
  */
 
 /**
  * Class Query
  *
- * @package		JSONDB
+ * @package     JSONDB
  * @subpackage  Query
  * @category    Direct query
- * @author		Nana Axel
+ * @author      Nana Axel
  */
 var Query = (function () {
     /**
      * Current Query instance
      * @type {Query}
      */
-    var instance;
+    // var instance;
 
     function Query(query, database) {
-        this.cache = require('./Cache')(this);
-        this.queryParser = require('./QueryParser');
+        this.cache = require('./Cache');
+        this.queryParser = new (require('./QueryParser'))();
         this.queryString = query;
         this.database = database;
 
-        instance = this;
+        this.async._i = this;
     }
 
     /**
@@ -130,33 +130,40 @@ var Query = (function () {
      * Sends a Database query asynchronously
      * @param {function} callback The callback
      */
-    Query.prototype.async._query = function (callback) {
+    Query.prototype.async._query = function (query, callback) {
+        this._i._queryAsync(query, callback);
+    };
+
+    Query.prototype._queryAsync = function(query, callback) {
         callback = callback || null;
+        this.queryString = query || this.queryString;
 
         if (null === callback || !(typeof callback === 'function')) {
             throw new Error("Database Error: Can't send a query asynchronously without a callback.");
         }
 
         try {
-            instance.parsedQuery = instance.queryParser.parse(instance.getQueryString());
+            this.parsedQuery = this.queryParser.parse(this.getQueryString());
         } catch (e) {
             callback(e, null);
         }
 
-        instance.queryPrepared = false;
-        instance.queryExecuted = false;
+        this.queryPrepared = false;
+        this.queryExecuted = false;
 
-        this._execute(callback);
+        this._executeAsync(callback);
     };
 
     /**
      * Sends a prepared query
      * @return {PreparedQueryStatement}
      */
-    Query.prototype._prepare = function () {
+    Query.prototype._prepare = function (query) {
         this.queryPrepared = true;
         this.queryExecuted = false;
-        return require('./PreparedQueryStatement')(instance.getQueryString(), instance);
+        this.queryString = query || this.queryString;
+
+        return new (require('./PreparedQueryStatement'))(this.getQueryString(), this);
     };
 
     /**
@@ -173,25 +180,37 @@ var Query = (function () {
 
             this.setTable(this.parsedQuery.table);
 
-            var Util = require('./Util');
+            var Util = new (require('./Util'))();
+            var lockFile = require('lockfile');
             var table_path = Util._getTablePath(this.database.getServer(), this.database.getDatabase(), this.table);
 
             if (!Util.existsSync(table_path)) {
                 throw new Error("Query Error: Can't execute the query. The table \"" + this.table + "\" doesn't existsSync in query \"" + this.database + "\" or file access denied.");
             }
 
-            var json_array = this.cache.get(table_path);
-            var method = "_" + this.parsedQuery.action;
-
             try {
-                this.queryExecuted = true;
+                while (lockFile.checkSync(table_path + '.lock')) {
+                    Util.waitFor(100);
+                }
 
                 this.database.bench().mark('jsondb_(query)_start');
+                lockFile.lockSync(table_path + '.lock');
+
+                var json_array = this.cache.get(table_path);
+                var method = "_" + this.parsedQuery.action;
+
+                this.queryExecuted = true;
+
                 var result = this[method](json_array);
+
+                lockFile.unlockSync(table_path + '.lock');
                 this.database.bench().mark('jsondb_(query)_end');
 
                 return result;
             } catch (e) {
+                if (lockFile.checkSync(table_path + '.lock')) {
+                    lockFile.unlockSync(table_path + '.lock');
+                }
                 this.queryExecuted = false;
                 throw e;
             }
@@ -205,31 +224,72 @@ var Query = (function () {
      * @private
      */
     Query.prototype.async._execute = function (callback) {
-        if (!instance.queryIsExecuted()) {
-            if (null === instance.database || null === instance.parsedQuery) {
+        this._i._executeAsync(callback);
+    };
+
+    Query.prototype._executeAsync = function(callback) {
+        if (!this.queryIsExecuted()) {
+            if (null === this.database || null === this.parsedQuery) {
                 callback(new Error("Query Error: Can't execute the query. No query/table selected or internal error."), null);
             }
 
-            instance.setTable(instance.parsedQuery.table);
+            this.setTable(this.parsedQuery.table);
 
-            var Util = require('./Util');
-            var table_path = Util._getTablePath(instance.database.getServer(), instance.database.getDatabase(), instance.table);
+            var Util = new (require('./Util'))();
+            var lockFile = require('lockfile');
+            var table_path = Util._getTablePath(this.database.getServer(), this.database.getDatabase(), this.table);
 
-            Util.exists(table_path, function (exists) {
-                if (!exists) {
-                    callback(new Error("Query Error: Can't execute the query. The table \"" + instance.table + "\" doesn't existsSync in query \"" + instance.database + "\" or file access denied."), null);
-                } else {
-                    var json_array = instance.cache.get(table_path);
-                    var method = "_" + instance.parsedQuery.action;
+            Util.exists(table_path, (function (callback, _this) {
+                return function (exists) {
+                    if (!exists) {
+                        callback(new Error("Query Error: Can't execute the query. The table \"" + _this.table + "\" doesn't exists in query \"" + _this.database + "\" or file access denied."), null);
+                    } else {
+                        try {
+                            (new (require('./Util'))()).whilst(
+                                function () {
+                                    return lockFile.checkSync(table_path + '.lock');
+                                },
+                                function (rewind) {
+                                    setTimeout(function () {
+                                        rewind();
+                                    }, 100);
+                                },
+                                function (err) {
+                                    if (err) {
+                                        callback(err, null);
+                                    } else {
+                                        lockFile.lock(table_path + '.lock', function (err) {
+                                            if (err) {
+                                                callback(err, null);
+                                            } else {
+                                                var json_array = _this.cache.get(table_path);
+                                                var method = "_" + _this.parsedQuery.action;
 
-                    instance.queryExecuted = true;
+                                                _this.queryExecuted = true;
 
-                    instance.database.bench().mark('jsondb_(query)_start');
-                    instance[method](json_array, callback);
-                    instance.database.bench().mark('jsondb_(query)_end');
-                }
-            });
+                                                _this.database.bench().mark('jsondb_(query)_start');
+                                                var res = _this[method](json_array);
+                                                _this.database.bench().mark('jsondb_(query)_end');
 
+                                                lockFile.unlock(table_path + '.lock', function (err) {
+                                                    if (err) {
+                                                        callback(err, null);
+                                                    } else {
+                                                        callback(null, res);
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                }
+                            );
+                        }
+                        catch (e) {
+                            callback(e, null);
+                        }
+                    }
+                };
+            })(callback, this));
         } else {
             callback(new Error('Query Error: There is no query to execute, or the query is already executed.'), null);
         }
@@ -290,7 +350,7 @@ var Query = (function () {
         if (null === this.database.getDatabase()) {
             throw new Error("Query Error: Can't use the table \"" + table + "\", there is no query selected.");
         }
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
         var path = Util._getTablePath(this.database.getServer(), this.database.getDatabase(), table);
         if (!(Util.existsSync(path))) {
             throw new Error("Query Error: Can't use the table \"" + table + "\", the table doesn't exist in the query.");
@@ -316,7 +376,7 @@ var Query = (function () {
      * @throws {Error}
      */
     Query.prototype._parseValue = function (value, properties) {
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
         if (null !== value || (properties.hasOwnProperty('not_null') && true === properties.not_null)) {
             if (properties.hasOwnProperty('type')) {
                 if (/link\((.+)\)/.test(properties.type)) {
@@ -390,7 +450,7 @@ var Query = (function () {
      * @private
      */
     Query.prototype._parseFunction = function (func, value) {
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
 
         switch (func) {
             case 'sha1':
@@ -424,19 +484,16 @@ var Query = (function () {
     /**
      * The select() query
      * @param {object}   data
-     * @param {function} callback
      * @return {QueryResult}
      * @throws {Error}
      */
-    Query.prototype._select = function (data, callback) {
-        callback = callback || null;
-
+    Query.prototype._select = function (data) {
         var result = data.data;
         var field_links = [];
         var column_links = [];
         var i, l, max, name, index, field, linkID, o;
 
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
 
         for (name in this.parsedQuery.extensions) {
             if (this.parsedQuery.extensions.hasOwnProperty(name)) {
@@ -493,7 +550,7 @@ var Query = (function () {
         if (field_links.length === column_links.length) {
             var links = Util.combine(field_links, column_links);
         } else {
-            Util.throwOrCall(callback, new Error('JSONDB Error: Invalid numbers of links. Given "' + field_links.length + '" columns to link but receive "' + column_links.length + '" links'), null);
+            throw new Error('JSONDB Error: Invalid numbers of links. Given "' + field_links.length + '" columns to link but receive "' + column_links.length + '" links');
         }
 
         if (!(typeof links === 'undefined')) {
@@ -520,7 +577,7 @@ var Query = (function () {
                                     }
                                 }
                             } else {
-                                Util.throwOrCall(callback, new Error("JSONDB Error: Can't link tables with the column \"" + field + "\". The column is not of type link."), null);
+                                throw new Error("JSONDB Error: Can't link tables with the column \"" + field + "\". The column is not of type link.");
                             }
                         }
                     }
@@ -543,7 +600,7 @@ var Query = (function () {
                             var name = parts[1].toLowerCase();
                             var param = parts[2] || false;
                             if (param === false) {
-                                Util.throwOrCall(callback, new Error('JSONDB Error: Can\'t uset the function ' + name + ' without parameters'), null);
+                                throw new Error('JSONDB Error: Can\'t uset the function ' + name + ' without parameters');
                             }
                             res[field] = this._parseFunction(name, line[param]);
                         } else {
@@ -582,24 +639,17 @@ var Query = (function () {
 
         this.queryResults = temp;
 
-        if (null === callback || !(typeof callback === 'function')) {
-            return require('./QueryResult')(this.queryResults, this);
-        } else {
-            callback(null, require('./QueryResult')(this.queryResults, this));
-        }
+        return new (require('./QueryResult'))(this.queryResults, this);
     };
 
     /**
      * The insert() query
      * @param {object}   data
-     * @param {function} callback
      * @return {boolean}
      * @throws {Error}
      */
-    Query.prototype._insert = function (data, callback) {
-        callback = callback || null;
-
-        var Util = require('./Util');
+    Query.prototype._insert = function (data) {
+        var Util = new (require('./Util'))();
         var rows = Util.values(Util.diff(data.prototype, ['#rowid']));
         var i, l, key, field, lid, slid, k, vl, value;
 
@@ -607,7 +657,7 @@ var Query = (function () {
             rows = this.parsedQuery.extensions.in;
             for (i = 0, l = rows.length; i < l; i++) {
                 if (!~data.prototype.indexOf(rows[i])) {
-                    Util.throwOrCall(callback, new Error("JSONDB Error: Can't insert data in the table \"" + this.table + "\". The column \"" + rows[i] + "\" doesn't exist."), null);
+                    throw new Error("JSONDB Error: Can't insert data in the table \"" + this.table + "\". The column \"" + rows[i] + "\" doesn't exist.");
                 }
             }
         }
@@ -615,7 +665,7 @@ var Query = (function () {
         var values_nb = Util.count(this.parsedQuery.parameters);
         var rows_nb = rows.length;
         if (values_nb !== rows_nb) {
-            Util.throwOrCall(callback, new Error("JSONDB Error: Can't insert data in the table \"" + this.table + "\". Invalid number of parameters (given \"" + values_nb + "\" values to insert in \"" + rows_nb + "\" columns)."), null);
+            throw new Error("JSONDB Error: Can't insert data in the table \"" + this.table + "\". Invalid number of parameters (given \"" + values_nb + "\" values to insert in \"" + rows_nb + "\" columns).");
         }
         var current_data = data.data;
         var ai_id = parseInt(data.properties.last_insert_id);
@@ -636,7 +686,7 @@ var Query = (function () {
                 var values = this.parsedQuery.extensions.and[i];
                 values_nb = values.length;
                 if (values_nb !== rows_nb) {
-                    Util.throwOrCall(callback, new Error("JSONDB Error: Can't insert data in the table \"" + this.table + "\". Invalid number of parameters (given \"" + values_nb + "\" values to insert in \"" + rows_nb + "\" columns)."), null);
+                    throw new Error("JSONDB Error: Can't insert data in the table \"" + this.table + "\". Invalid number of parameters (given \"" + values_nb + "\" values to insert in \"" + rows_nb + "\" columns).");
                 }
                 var to_add = {'#rowid': this._getLastValidRowID(Util.merge(current_data, insert), false) + 1};
                 for (k = 0, vl = values.length; k < vl; k++) {
@@ -693,7 +743,7 @@ var Query = (function () {
                         if (pk_error) {
                             values = Util.objectToArray(value).join(', ');
                             var keys = data.properties.primary_keys.join(', ');
-                            Util.throwOrCall(callback, new Error("JSONDB Error: Can't insert value. Duplicate values \"" + values + "\" for primary keys \"" + keys + "\"."), null);
+                            throw new Error("JSONDB Error: Can't insert value. Duplicate values \"" + values + "\" for primary keys \"" + keys + "\".");
                         }
                     }
                 }
@@ -713,7 +763,7 @@ var Query = (function () {
                             value = Util.intersect_key(insert[slid], Util.combine([uk], [uk]));
                             uk_error = !!(uk_error || ((null !== value[uk]) && (JSON.stringify(value) === JSON.stringify(array_data))));
                             if (uk_error) {
-                                Util.throwOrCall(callback, new Error("JSONDB Error: Can't insert value. Duplicate values \"" + value[uk] + "\" for unique key \"" + uk + "\"."), null);
+                                throw new Error("JSONDB Error: Can't insert value. Duplicate values \"" + value[uk] + "\" for unique key \"" + uk + "\".");
                             }
                         }
                     }
@@ -762,76 +812,24 @@ var Query = (function () {
         var path = Util._getTablePath(this.database.getServer(), this.database.getDatabase(), this.table);
         this.cache.update(path, data);
 
-        var lockFile = require('lockfile');
         var _f = require('fs');
 
-        if (null === callback || !(typeof callback === 'function')) {
-            try {
-                var checkIfLocked = function () {
-                    if (lockFile.checkSync(path + '.lock')) {
-                        Util.waitFor(100);
-                        checkIfLocked();
-                    } else {
-                        lockFile.lockSync(path + '.lock');
-                        _f.writeFileSync(path, JSON.stringify(data));
-                        lockFile.unlockSync(path + '.lock');
-                    }
-                };
-                checkIfLocked();
-                return true;
-            } catch (e) {
-                throw e;
-            }
-        } else {
-            Util.whilst(
-                function () {
-                    return lockFile.checkSync(path + '.lock');
-                },
-                function (callback) {
-                    setTimeout(function () {
-                        callback(null);
-                    }, 100);
-                },
-                function (err) {
-                    if (err) {
-                        throw err;
-                    }
-                    lockFile.lock(path + '.lock', function (err) {
-                        if (err) {
-                            Util.throwOrCall(callback, err, null);
-                        } else {
-                            _f.writeFile(path, JSON.stringify(data), function (err) {
-                                if (err) {
-                                    lockFile.unlockSync(path + '.lock');
-                                    Util.throwOrCall(callback, err, null);
-                                } else {
-                                    lockFile.unlock(path + '.lock', function (err) {
-                                        if (err) {
-                                            Util.throwOrCall(callback, err, null);
-                                        } else {
-                                            callback(null, true);
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    });
-                }
-            );
+        try {
+            _f.writeFileSync(path, JSON.stringify(data));
+            return true;
+        } catch (e) {
+            throw e;
         }
     };
 
     /**
      * The replace() query
      * @param {object}   data
-     * @param {function} callback
      * @return {boolean}
      * @throws {Error}
      */
-    Query.prototype._replace = function (data, callback) {
-        callback = callback || null;
-
-        var Util = require('./Util');
+    Query.prototype._replace = function (data) {
+        var Util = new (require('./Util'))();
         var rows = Util.values(Util.diff(data.prototype, ['#rowid']));
         var i, l, key, k, vl, field, slid, lid;
 
@@ -839,7 +837,7 @@ var Query = (function () {
             rows = this.parsedQuery.extensions.in;
             for (i = 0, l = rows.length; i < l; i++) {
                 if (!~data.prototype.indexOf(rows[i])) {
-                    Util.throwOrCall(callback, new Error("JSONDB Error: Can't insert data in the table \"" + this.table + "\". The column \"" + rows[i] + "\" doesn't exist."), null);
+                    throw new Error("JSONDB Error: Can't insert data in the table \"" + this.table + "\". The column \"" + rows[i] + "\" doesn't exist.");
                 }
             }
         }
@@ -847,7 +845,7 @@ var Query = (function () {
         var values_nb = Util.count(this.parsedQuery.parameters);
         var rows_nb = rows.length;
         if (values_nb !== rows_nb) {
-            Util.throwOrCall(callback, new Error("JSONDB Error: Can't insert data in the table \"" + this.table + "\". Invalid number of parameters (given \"" + values_nb + "\" values to insert in \"" + rows_nb + "\" columns)."), null);
+            throw new Error("JSONDB Error: Can't insert data in the table \"" + this.table + "\". Invalid number of parameters (given \"" + values_nb + "\" values to insert in \"" + rows_nb + "\" columns).");
         }
         var current_data = data.data;
         var insert = [{}];
@@ -897,7 +895,7 @@ var Query = (function () {
                         if (pk_error) {
                             values = Util.objectToArray(value).join(', ');
                             var keys = data.properties.primary_keys.join(', ');
-                            Util.throwOrCall(callback, new Error("JSONDB Error: Can't insert value. Duplicate values \"" + values + "\" for primary keys \"" + keys + "\"."), null);
+                            throw new Error("JSONDB Error: Can't insert value. Duplicate values \"" + values + "\" for primary keys \"" + keys + "\".");
                         }
                     }
                 }
@@ -917,7 +915,7 @@ var Query = (function () {
                             value = Util.intersect_key(insert[slid], Util.combine([uk], [uk]));
                             uk_error = !!(uk_error || ((null !== value[uk]) && (JSON.stringify(value) === JSON.stringify(array_data))));
                             if (uk_error) {
-                                Util.throwOrCall(callback, new Error("JSONDB Error: Can't insert value. Duplicate values \"" + value[uk] + "\" for unique key \"" + uk + "\"."), null);
+                                throw new Error("JSONDB Error: Can't insert value. Duplicate values \"" + value[uk] + "\" for unique key \"" + uk + "\".");
                             }
                         }
                     }
@@ -964,76 +962,24 @@ var Query = (function () {
         var path = Util._getTablePath(this.database.getServer(), this.database.getDatabase(), this.table);
         this.cache.update(path, data);
 
-        var lockFile = require('lockfile');
         var _f = require('fs');
 
-        if (null === callback || !(typeof callback === 'function')) {
-            try {
-                var checkIfLocked = function () {
-                    if (lockFile.checkSync(path + '.lock')) {
-                        Util.waitFor(100);
-                        checkIfLocked();
-                    } else {
-                        lockFile.lockSync(path + '.lock');
-                        _f.writeFileSync(path, JSON.stringify(data));
-                        lockFile.unlockSync(path + '.lock');
-                    }
-                };
-                checkIfLocked();
-                return true;
-            } catch (e) {
-                throw e;
-            }
-        } else {
-            Util.whilst(
-                function () {
-                    return lockFile.checkSync(path + '.lock');
-                },
-                function (callback) {
-                    setTimeout(function () {
-                        callback(null);
-                    }, 100);
-                },
-                function (err) {
-                    if (err) {
-                        throw err;
-                    }
-                    lockFile.lock(path + '.lock', function (err) {
-                        if (err) {
-                            Util.throwOrCall(callback, err, null);
-                        } else {
-                            _f.writeFile(path, JSON.stringify(data), function (err) {
-                                if (err) {
-                                    lockFile.unlockSync(path + '.lock');
-                                    Util.throwOrCall(callback, err, null);
-                                } else {
-                                    lockFile.unlock(path + '.lock', function (err) {
-                                        if (err) {
-                                            Util.throwOrCall(callback, err, null);
-                                        } else {
-                                            callback(null, true);
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    });
-                }
-            );
+        try {
+            _f.writeFileSync(path, JSON.stringify(data));
+            return true;
+        } catch (e) {
+            throw e;
         }
     };
 
     /**
      * The delete() query
      * @param {object}   data
-     * @param {function} callback
      * @return {boolean}
      * @throws {Error}
      */
-    Query.prototype._delete = function (data, callback) {
-        callback = callback || null;
-
-        var Util = require('./Util');
+    Query.prototype._delete = function (data) {
+        var Util = new (require('./Util'))();
         var current_data = data.data;
         var to_delete = current_data
         var i, l, key, lid;
@@ -1076,76 +1022,24 @@ var Query = (function () {
         var path = Util._getTablePath(this.database.getServer(), this.database.getDatabase(), this.table);
         this.cache.update(path, data);
 
-        var lockFile = require('lockfile');
         var _f = require('fs');
 
-        if (null === callback || !(typeof callback === 'function')) {
-            try {
-                var checkIfLocked = function () {
-                    if (lockFile.checkSync(path + '.lock')) {
-                        Util.waitFor(100);
-                        checkIfLocked();
-                    } else {
-                        lockFile.lockSync(path + '.lock');
-                        _f.writeFileSync(path, JSON.stringify(data));
-                        lockFile.unlockSync(path + '.lock');
-                    }
-                };
-                checkIfLocked();
-                return true;
-            } catch (e) {
-                throw e;
-            }
-        } else {
-            Util.whilst(
-                function () {
-                    return lockFile.checkSync(path + '.lock');
-                },
-                function (callback) {
-                    setTimeout(function () {
-                        callback(null);
-                    }, 100);
-                },
-                function (err) {
-                    if (err) {
-                        throw err;
-                    }
-                    lockFile.lock(path + '.lock', function (err) {
-                        if (err) {
-                            Util.throwOrCall(callback, err, null);
-                        } else {
-                            _f.writeFile(path, JSON.stringify(data), function (err) {
-                                if (err) {
-                                    lockFile.unlockSync(path + '.lock');
-                                    Util.throwOrCall(callback, err, null);
-                                } else {
-                                    lockFile.unlock(path + '.lock', function (err) {
-                                        if (err) {
-                                            Util.throwOrCall(callback, err, null);
-                                        } else {
-                                            callback(null, true);
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    });
-                }
-            );
+        try {
+            _f.writeFileSync(path, JSON.stringify(data));
+            return true;
+        } catch (e) {
+            throw e;
         }
     };
 
     /**
      * The update() query
      * @param {object}   data
-     * @param {function} callback
      * @return {boolean}
      * @throws {Error}
      */
-    Query.prototype._update = function (data, callback) {
-        callback = callback || null;
-
-        var Util = require('./Util');
+    Query.prototype._update = function (data) {
+        var Util = new (require('./Util'))();
         var result = data['data'];
         var i, l, lid, key, ul, id, row, field;
 
@@ -1158,13 +1052,13 @@ var Query = (function () {
         }
 
         if (!this.parsedQuery.extensions.hasOwnProperty('with')) {
-            Util.throwOrCall(callback, new Error("JSONDB Error: Can't execute the \"update()\" query without values. The \"with()\" extension is required."), null);
+            throw new Error("JSONDB Error: Can't execute the \"update()\" query without values. The \"with()\" extension is required.");
         }
 
         var fields_nb = this.parsedQuery.parameters.length;
         var values_nb = this.parsedQuery.extensions.with.length;
         if (fields_nb !== values_nb) {
-            Util.throwOrCall(callback, new Error("JSONDB Error: Can't execute the \"update()\" query. Invalid number of parameters (trying to update \"" + fields_nb + "\" columns with \"" + values_nb + "\" values)."), null);
+            throw new Error("JSONDB Error: Can't execute the \"update()\" query. Invalid number of parameters (trying to update \"" + fields_nb + "\" columns with \"" + values_nb + "\" values).");
         }
 
         var values = Util.combine(this.parsedQuery.parameters, this.parsedQuery.extensions.with);
@@ -1178,7 +1072,7 @@ var Query = (function () {
                 if (pk_error) {
                     var v = Util.objectToArray(array_data).join(', ');
                     var k = data.properties.primary_keys.join(', ');
-                    Util.throwOrCall(callback, new Error("JSONDB Error: Can't insert value. Duplicate values \"" + v + "\" for primary keys \"" + k + "\"."), null);
+                    throw new Error("JSONDB Error: Can't insert value. Duplicate values \"" + v + "\" for primary keys \"" + k + "\".");
                 }
             }
         }
@@ -1192,7 +1086,7 @@ var Query = (function () {
                     array_data = Util.intersect_key(data.data[lid], Util.combine([uk], [uk]));
                     uk_error = !!(uk_error || ((null !== item[uk]) && (JSON.stringify(item) === JSON.stringify(array_data))));
                     if (uk_error) {
-                        Util.throwOrCall(callback, new Error("JSONDB Error: Can't insert value. Duplicate values \"" + item[uk] + "\" for unique key \"" + uk + "\"."), null);
+                        throw new Error("JSONDB Error: Can't insert value. Duplicate values \"" + item[uk] + "\" for unique key \"" + uk + "\".");
                     }
                 }
             }
@@ -1210,7 +1104,7 @@ var Query = (function () {
                     if (data.data.hasOwnProperty(key)) {
                         var data_line = data.data[key];
                         if (data_line['#rowid'] === res_line['#rowid']) {
-                            data.data[key] = result['#rowid'];
+                            data.data[key] = result;
                             break;
                         }
                     }
@@ -1254,154 +1148,50 @@ var Query = (function () {
         var path = Util._getTablePath(this.database.getServer(), this.database.getDatabase(), this.table);
         this.cache.update(path, data);
 
-        var lockFile = require('lockfile');
         var _f = require('fs');
 
-        if (null === callback || !(typeof callback === 'function')) {
-            try {
-                var checkIfLocked = function () {
-                    if (lockFile.checkSync(path + '.lock')) {
-                        Util.waitFor(100);
-                        checkIfLocked();
-                    } else {
-                        lockFile.lockSync(path + '.lock');
-                        _f.writeFileSync(path, JSON.stringify(data));
-                        lockFile.unlockSync(path + '.lock');
-                    }
-                };
-                checkIfLocked();
-                return true;
-            } catch (e) {
-                throw e;
-            }
-        } else {
-            Util.whilst(
-                function () {
-                    return lockFile.checkSync(path + '.lock');
-                },
-                function (callback) {
-                    setTimeout(function () {
-                        callback(null);
-                    }, 100);
-                },
-                function (err) {
-                    if (err) {
-                        throw err;
-                    }
-                    lockFile.lock(path + '.lock', function (err) {
-                        if (err) {
-                            Util.throwOrCall(callback, err, null);
-                        } else {
-                            _f.writeFile(path, JSON.stringify(data), function (err) {
-                                if (err) {
-                                    lockFile.unlockSync(path + '.lock');
-                                    Util.throwOrCall(callback, err, null);
-                                } else {
-                                    lockFile.unlock(path + '.lock', function (err) {
-                                        if (err) {
-                                            Util.throwOrCall(callback, err, null);
-                                        } else {
-                                            callback(null, true);
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    });
-                }
-            );
+        try {
+            _f.writeFileSync(path, JSON.stringify(data));
+            return true;
+        } catch (e) {
+            throw e;
         }
     };
 
     /**
      * The truncate() query
      * @param {object}   data
-     * @param {function} callback
      * @return {boolean}
      * @throws {Error}
      */
-    Query.prototype._truncate = function (data, callback) {
-        callback = callback || null;
-
+    Query.prototype._truncate = function (data) {
         data['properties']['last_insert_id'] = 0;
         data['properties']['last_valid_row_id'] = 0;
         data['data'] = {};
 
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
         var path = Util._getTablePath(this.database.getServer(), this.database.getDatabase(), this.table);
         this.cache.update(path, data);
 
-        var lockFile = require('lockfile');
         var _f = require('fs');
 
-        if (null === callback || !(typeof callback === 'function')) {
-            try {
-                var checkIfLocked = function () {
-                    if (lockFile.checkSync(path + '.lock')) {
-                        Util.waitFor(100);
-                        checkIfLocked();
-                    } else {
-                        lockFile.lockSync(path + '.lock');
-                        _f.writeFileSync(path, JSON.stringify(data));
-                        lockFile.unlockSync(path + '.lock');
-                    }
-                };
-                checkIfLocked();
-                return true;
-            } catch (e) {
-                throw e;
-            }
-        } else {
-            Util.whilst(
-                function () {
-                    return lockFile.checkSync(path + '.lock');
-                },
-                function (callback) {
-                    setTimeout(function () {
-                        callback(null);
-                    }, 100);
-                },
-                function (err) {
-                    if (err) {
-                        throw err;
-                    }
-                    lockFile.lock(path + '.lock', function (err) {
-                        if (err) {
-                            Util.throwOrCall(callback, err, null);
-                        } else {
-                            _f.writeFile(path, JSON.stringify(data), function (err) {
-                                if (err) {
-                                    lockFile.unlockSync(path + '.lock');
-                                    Util.throwOrCall(callback, err, null);
-                                } else {
-                                    lockFile.unlock(path + '.lock', function (err) {
-                                        if (err) {
-                                            Util.throwOrCall(callback, err, null);
-                                        } else {
-                                            callback(null, true);
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    });
-                }
-            );
+        try {
+            _f.writeFileSync(path, JSON.stringify(data));
+            return true;
+        } catch (e) {
+            throw e;
         }
     };
 
     /**
      * The count() query
      * @param {object}   data
-     * @param {function} callback
      * @return {QueryResult}
      * @throws {Error}
      */
-    Query.prototype._count = function (data, callback) {
-        callback = callback || null;
-
+    Query.prototype._count = function (data) {
         var cid, lid, i, l;
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
         var rows = Util.values(Util.diff(data['prototype'], ['#rowid']));
         if (!~this.parsedQuery.parameters.indexOf('*')) {
             rows = this.parsedQuery['parameters'];
@@ -1470,11 +1260,7 @@ var Query = (function () {
             result = [result];
         }
 
-        if (null === callback || !(typeof callback === 'function')) {
-            return require('./QueryResult')(result, this);
-        } else {
-            callback(null, require('./QueryResult')(result, this));
-        }
+        return new (require('./QueryResult'))(result, this);
     };
 
     /**
@@ -1488,7 +1274,7 @@ var Query = (function () {
      * @throws {Error}
      */
     Query.prototype._filter = function (data, filters) {
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
         var result = data;
         var temp = [];
 
@@ -1580,6 +1366,4 @@ var Query = (function () {
 })();
 
 // Exports the module
-module.exports = function (query, database) {
-    return new Query(query, database);
-};
+module.exports = Query;

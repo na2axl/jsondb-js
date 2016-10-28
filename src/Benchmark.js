@@ -7,20 +7,20 @@
  *
  * Copyright (c) 2016, Centers Technologies
  *
- * @package	   JSONDB
- * @author	   Nana Axel
+ * @package    JSONDB
+ * @author     Nana Axel
  * @copyright  Copyright (c) 2016, Centers Technologies
- * @license	   http://spdx.org/licenses/GPL-3.0 GPL License
+ * @license    http://spdx.org/licenses/GPL-3.0 GPL License
  * @filesource
  */
 
 /**
  * Class Benchmark
  *
- * @package		JSONDB
+ * @package     JSONDB
  * @subpackage  Utilities
  * @category    Benchmark
- * @author		Nana Axel
+ * @author      Nana Axel
  */
 var Benchmark = (function () {
     function Benchmark() { }

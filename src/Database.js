@@ -23,12 +23,6 @@
  * @author     Nana Axel
  */
 var Database = (function () {
-    /**
-     * The current Database instance
-     * @type {Database}
-     */
-    var instance;
-
     function Database(server, username, password, database) {
         server = server || null;
         username = username || null;
@@ -42,7 +36,7 @@ var Database = (function () {
         this.benchmark = require('./Benchmark');
 
         this.benchmark.mark('Database_(connect)_start');
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
         var _p = require('path');
         var config = this.config.getConfig('users');
 
@@ -62,7 +56,7 @@ var Database = (function () {
         this.password = password;
         this.benchmark.mark('Database_(connect)_end');
 
-        instance = this;
+        this.async._i = this;
     }
 
     /**
@@ -117,7 +111,7 @@ var Database = (function () {
         if (null === this.server) {
             throw new Error("Database Error: Can't use the database \"" + database + "\", there is no connection established with a server.");
         }
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
         var path = Util._getDatabasePath(this.server, database);
         if (!(Util.existsSync(path))) {
             throw new Error("Database Error: Can't use the database \"" + database + "\", the database doesn't exist in the server.");
@@ -160,7 +154,7 @@ var Database = (function () {
         if (null === name) {
             return false;
         }
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
         return Util.existsSync(Util._getDatabasePath(this.server, name));
     };
 
@@ -171,20 +165,24 @@ var Database = (function () {
      * @throws {Error}
      */
     Database.prototype.async.databaseExists = function (name, callback) {
+        this._i.databaseExistsAsync(name, callback);
+    };
+
+    Database.prototype.databaseExistsAsync = function (name, callback) {
         callback = callback || null;
 
         if (null === callback || !(typeof callback === 'function')) {
             throw new Error("JSONDB Error: Can't check asynchronously if a database exists without a callback.");
         }
 
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
 
         setImmediate(function() {
             name = name || null;
             if (null === name) {
                 callback(false);
             }
-            Util.exists(Util._getDatabasePath(instance.server, name), callback);
+            Util.exists(Util._getDatabasePath(this.server, name), callback);
         }.bind(this));
     };
 
@@ -212,7 +210,7 @@ var Database = (function () {
         }
 
         var _f = require('fs');
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
         var path = Util._getDatabasePath(this.server, name);
 
         if (Util.existsSync(path)) {
@@ -244,48 +242,52 @@ var Database = (function () {
      * @param {function} callback The callback
      */
     Database.prototype.async.createDatabase = function (name, callback) {
+        this._i.createDatabaseAsync(name, callback);
+    };
+
+    Database.prototype.createDatabaseAsync = function(name, callback) {
         callback = callback || null;
 
         if (null === callback || !(typeof callback === 'function')) {
             throw new Error("Database Error: Can't create a database asynchronously without a callback.");
         }
 
-        instance.benchmark.mark('Database_(createDatabase)_start');
+        this.benchmark.mark('Database_(createDatabase)_start');
         if (null === name) {
-            instance.benchmark.mark('Database_(createDatabase)_end');
+            this.benchmark.mark('Database_(createDatabase)_end');
             callback(new Error("Database Error: Can't create the database, the database's name is missing."));
         }
-        if (null === instance.server) {
-            instance.benchmark.mark('Database_(createDatabase)_end');
+        if (null === this.server) {
+            this.benchmark.mark('Database_(createDatabase)_end');
             callback(new Error("Database Error: Can't create the database \"" + name + "\", there is no connection established with a server."));
         }
 
         var _f = require('fs');
-        var Util = require('./Util');
-        var path = Util._getDatabasePath(instance.server, name);
+        var Util = new (require('./Util'))();
+        var path = Util._getDatabasePath(this.server, name);
 
         setImmediate(function() {
             Util.exists(path, function (exists) {
                 if (exists) {
-                    instance.benchmark.mark('Database_(createDatabase)_end');
-                    callback(new Error("Database Error: Can't create the database \"" + name + "\" in the server \"" + instance.server + "\", the database already exist."));
+                    this.benchmark.mark('Database_(createDatabase)_end');
+                    callback(new Error("Database Error: Can't create the database \"" + name + "\" in the server \"" + this.server + "\", the database already exist."));
                 } else {
                     Util.mkdir(path, function (err) {
                         if (err) {
-                            instance.benchmark.mark('Database_(createDatabase)_end');
-                            callback(new Error("Database Error: Can't create the database \"" + name + "\" in the server \"" + instance.server + "\""));
+                            this.benchmark.mark('Database_(createDatabase)_end');
+                            callback(new Error("Database Error: Can't create the database \"" + name + "\" in the server \"" + this.server + "\""));
                         }
                         _f.chmod(path, 0x1ff, function (err) {
                             if (err) {
                                 callback(err);
                             } else {
-                                instance.benchmark.mark('Database_(createDatabase)_end');
+                                this.benchmark.mark('Database_(createDatabase)_end');
                                 callback(null);
                             }
-                        });
-                    });
+                        }.bind(this));
+                    }.bind(this));
                 }
-            });
+            }.bind(this));
         }.bind(this));
     };
 
@@ -311,7 +313,7 @@ var Database = (function () {
         if (null === name) {
             return false;
         }
-        return require('./Util').existsSync(this.server + "/" + this.database + "/" + name + ".json");
+        return (new (require('./Util'))).existsSync(this.server + "/" + this.database + "/" + name + ".json");
     };
 
     /**
@@ -321,19 +323,23 @@ var Database = (function () {
      * @throws {Error}
      */
     Database.prototype.async.tableExists = function (name, callback) {
+        this._i.tableExistsAsync(name, callback);
+    };
+
+    Database.prototype.tableExistsAsync = function(name, callback) {
         callback = callback || null;
         if (null === callback || !(typeof callback === 'function')) {
             throw new Error("Database Error: Can't check asynchronously if a database exist without a callback.");
         }
 
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
 
         setImmediate(function () {
             name = name || null;
             if (null === name) {
                 callback(false);
             }
-            Util.exists(instance.server + "/" + instance.database + "/" + name + ".json", callback);
+            Util.exists(this.server + "/" + this.database + "/" + name + ".json", callback);
         }.bind(this));
     };
 
@@ -366,7 +372,7 @@ var Database = (function () {
 
         var table_path = this.server + "/" + this.database + "/" + name + ".json";
         var _f = require('fs');
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
 
         if (Util.existsSync(table_path)) {
             this.benchmark.mark('Database_(createTable)_end');
@@ -460,6 +466,10 @@ var Database = (function () {
      * @param {function} callback  The callback
      */
     Database.prototype.async.createTable = function (name, prototype, callback) {
+        this._i.createTableAsync(name, prototype, callback);
+    };
+
+    Database.prototype.createTableAsync = function(name, prototype, callback) {
         callback = callback || null;
 
         if (null === callback || !(typeof callback === 'function')) {
@@ -473,21 +483,21 @@ var Database = (function () {
             callback(new Error('Database Error: Can\'t create table, missing parameters.'));
         }
 
-        instance.benchmark.mark('Database_(createTable)_start');
-        if (null === instance.database) {
-            instance.benchmark.mark('Database_(createTable)_end');
+        this.benchmark.mark('Database_(createTable)_start');
+        if (null === this.database) {
+            this.benchmark.mark('Database_(createTable)_end');
             callback(new Error('Database Error: Trying to create a table without using a database.'));
         }
 
-        var table_path = instance.server + "/" + instance.database + "/" + name + ".json";
+        var table_path = this.server + "/" + this.database + "/" + name + ".json";
         var _f = require('fs');
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
 
         setImmediate(function () {
             Util.exists(table_path, function (exists) {
                 if (exists) {
-                    instance.benchmark.mark('Database_(createTable)_end');
-                    callback(new Error("Database Error: Can't create the table \"" + name + "\" in the database \"" + instance.database + "\". The table already exist."));
+                    this.benchmark.mark('Database_(createTable)_end');
+                    callback(new Error("Database Error: Can't create the table \"" + name + "\" in the database \"" + this.database + "\". The table already exist."));
                 } else {
                     var fields = [];
                     var properties = {
@@ -506,7 +516,7 @@ var Database = (function () {
                             var has_uk = prop.hasOwnProperty('unique_key');
                             var has_tp = prop.hasOwnProperty('type');
                             if (ai_exist && has_ai) {
-                                instance.benchmark.mark('Database_(createTable)_end');
+                                this.benchmark.mark('Database_(createTable)_end');
                                 callback(new Error("Database Error: Can't use the \"auto_increment\" property on more than one field."));
                             } else if (!ai_exist && has_ai) {
                                 ai_exist = true;
@@ -528,12 +538,12 @@ var Database = (function () {
                                 if (/link\((.+)\)/.test(prop.type)) {
                                     var link = prop.type.match(/link\((.+)\)/);
                                     var link_info = link[1].split('.');
-                                    var link_table_path = instance.server + "/" + instance.database + "/" + link_info[0] + ".json";
+                                    var link_table_path = this.server + "/" + this.database + "/" + link_info[0] + ".json";
 
                                     Util.exists(link_table_path, (function (link_table_path, link_info) {
                                         return function (exists) {
                                             if (!exists) {
-                                                callback(new Error("Database Error: Can't create the table \"" + name + "\". An error occur when linking the column \"" + field + "\" with the column \"" + link[1] + "\", the table \"" + link_info[0] + "\" doesn't exist in the database \"" + instance.database + "\"."));
+                                                callback(new Error("Database Error: Can't create the table \"" + name + "\". An error occur when linking the column \"" + field + "\" with the column \"" + link[1] + "\", the table \"" + link_info[0] + "\" doesn't exist in the database \"" + this.database + "\"."));
                                             } else {
                                                 var link_table_data = Util.getTableData(link_table_path);
                                                 if (!~link_table_data['prototype'].indexOf(link_info[1])) {
@@ -543,8 +553,8 @@ var Database = (function () {
                                                     callback(new Error("Database Error: Can't create the table \"" + name + "\". An error occur when linking the column \"" + field + "\" with the column \"" + link[1] + "\", the column \"" + link_info[1] + "\" is not a PRIMARY KEY or an UNIQUE KEY in the table \"" + link_info[0] + "\" ."));
                                                 }
                                             }
-                                        };
-                                    })(link_table_path, link_info));
+                                        }.bind(this);
+                                    }.bind(this))(link_table_path, link_info));
                                 }
                             } else {
                                 prototype[field].type = 'string';
@@ -570,14 +580,14 @@ var Database = (function () {
                                     if (err) {
                                         callback(err);
                                     } else {
-                                        instance.benchmark.mark('Database_(createTable)_end');
+                                        this.benchmark.mark('Database_(createTable)_end');
                                         callback(null);
                                     }
-                                });
+                                }.bind(this));
                             }
-                        });
+                        }.bind(this));
                     } else {
-                        instance.benchmark.mark('Database_(createTable)_end');
+                        this.benchmark.mark('Database_(createTable)_end');
                         callback(new Error("Database Error: Can't create file \"" + table_path + "\"."));
                     }
                 }
@@ -592,7 +602,7 @@ var Database = (function () {
      * @return {*}
      */
     Database.prototype.query = function (query) {
-        return (require('./Query')(query, this))._query();
+        return (new (require('./Query'))(query, this))._query();
     };
 
     /**
@@ -601,6 +611,10 @@ var Database = (function () {
      * @param {function} callback The callback
      */
     Database.prototype.async.query = function (query, callback) {
+        this._i.queryAsync(query, callback);
+    };
+
+    Database.prototype.queryAsync = function (query, callback) {
         callback = callback || null;
 
         if (null === callback || !(typeof callback === 'function')) {
@@ -608,7 +622,12 @@ var Database = (function () {
         }
 
         setImmediate(function() {
-            (require('./Query')(query, instance)).async._query(callback);
+            try {
+                callback(null, (new (require('./Query'))(query, this))._query(query));
+            }
+            catch (e) {
+                callback(e, null);
+            }
         }.bind(this));
     };
 
@@ -618,7 +637,7 @@ var Database = (function () {
      * @return {PreparedQueryStatement}
      */
     Database.prototype.prepare = function (query) {
-        return (require('./Query')(query, this))._prepare();
+        return (new (require('./Query'))(query, this))._prepare(query);
     };
 
     /**
@@ -627,6 +646,10 @@ var Database = (function () {
      * @param {function} callback The callback
      */
     Database.prototype.async.prepare = function (query, callback) {
+        this._i.prepareAsync(query, callback);
+    };
+
+    Database.prototype.prepareAsync = function (query, callback) {
         callback = callback || null;
 
         if (null === callback || !(typeof callback === 'function')) {
@@ -634,15 +657,13 @@ var Database = (function () {
         }
 
         setImmediate(function() {
-            var q = require('./Query')(query, instance);
-            callback(null, q._prepare());
-        });
+            var q = new (require('./Query'))(query, this);
+            callback(null, q._prepare(query));
+        }.bind(this));
     };
 
     return Database;
 })();
 
 // Exports the module
-module.exports = function(server, username, password, database) {
-    return new Database(server, username, password, database);
-};
+module.exports = Database;

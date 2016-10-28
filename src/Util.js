@@ -7,20 +7,20 @@
  *
  * Copyright (c) 2016, Centers Technologies
  *
- * @package	   JSONDB
- * @author	   Nana Axel
+ * @package    JSONDB
+ * @author     Nana Axel
  * @copyright  Copyright (c) 2016, Centers Technologies
- * @license	   http://spdx.org/licenses/GPL-3.0 GPL License
+ * @license    http://spdx.org/licenses/GPL-3.0 GPL License
  * @filesource
  */
 
 /**
  * Class Util
  *
- * @package		JSONDB
+ * @package     JSONDB
  * @subpackage  Utilities
  * @category    Utilities
- * @author		Nana Axel
+ * @author      Nana Axel
  */
 var Util = (function () {
     function Util() { }
@@ -450,25 +450,8 @@ var Util = (function () {
     Util.prototype.getTableData = function (path) {
         path = path || this._getTablePath();
         var _f = require('fs');
-        var lockFile = require('lockfile');
-        var ret;
 
-        var checkIfLocked = (function (_this) {
-            return function () {
-                if (lockFile.checkSync(_this._getTablePath() + '.lock')) {
-                    _this.waitFor(100);
-                    checkIfLocked();
-                } else {
-                    lockFile.lockSync(path + '.lock');
-                    ret = JSON.parse(_f.readFileSync(path));
-                    lockFile.unlockSync(path + '.lock');
-                }
-            };
-        })(this);
-
-        checkIfLocked();
-
-        return ret;
+        return JSON.parse(_f.readFileSync(path));
     };
 
     /**
@@ -501,17 +484,20 @@ var Util = (function () {
      * @param {function} callback  The callback function
      */
     Util.prototype.whilst = function(condition, bridge, callback) {
-        try {
-            if (condition() === false) {
-                return callback(null);
-            }
-            return bridge(function() {
-                this.whilst(condition, bridge, callback);
-            }.bind(this));
-        }
-        catch (e) {
-            return callback(e);
-        }
+        var rewind = (function(c, b, r) {
+            return function() {
+                try {
+                    if (c() === false) {
+                        r(null);
+                    } else {
+                        b(rewind);
+                    }
+                }
+                catch (e) {
+                    r(e);
+                }
+            };
+        })(condition, bridge, callback)();
     };
 
     /**
@@ -577,4 +563,4 @@ var Util = (function () {
 })();
 
 // Exports the module
-module.exports = new Util();
+module.exports = Util;

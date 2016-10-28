@@ -23,19 +23,13 @@
  * @author		Nana Axel
  */
 var PreparedQueryStatement = (function () {
-    /**
-     * Current PreparedQueryStatement instance
-     * @type {PreparedQueryStatement}
-     */
-    var instance;
-
     function PreparedQueryStatement(query, database) {
         this.queryString = query;
         this.query = database;
 
         this._prepareQuery();
 
-        instance = this;
+        this.async._i = this;
     }
 
     /**
@@ -67,7 +61,7 @@ var PreparedQueryStatement = (function () {
      */
     PreparedQueryStatement.prototype.bindValue = function (key, value, parse_method) {
         var JSONDB = require('./JSONDB');
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
 
         parse_method = parse_method || JSONDB.PARAM_STRING;
         if (this.query.queryIsPrepared()) {
@@ -121,6 +115,10 @@ var PreparedQueryStatement = (function () {
      * @param {function} callback The callback
      */
     PreparedQueryStatement.prototype.async.execute = function (callback) {
+        this._i.executeAsync(callback);
+    };
+
+    PreparedQueryStatement.prototype.executeAsync = function (callbakc) {
         callback = callback || null;
 
         if (null === callback || !(typeof callback === 'function')) {
@@ -128,8 +126,8 @@ var PreparedQueryStatement = (function () {
         }
 
         setImmediate(function() {
-            if (instance.query.queryIsPrepared()) {
-                callback(null, instance.query._query(instance.queryString));
+            if (this.query.queryIsPrepared()) {
+                callback(null, this.query._query(this.queryString));
             } else {
                 callback(new Error("JSONDB Error: Can't execute the prepared query. There is no prepared query to execute or the prepared query is already executed."), null);
             }
@@ -148,6 +146,4 @@ var PreparedQueryStatement = (function () {
 })();
 
 // Exports the module
-module.exports = function (query, database) {
-    return new PreparedQueryStatement(query, database);
-};
+module.exports = PreparedQueryStatement;

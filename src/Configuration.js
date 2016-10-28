@@ -7,20 +7,20 @@
  *
  * Copyright (c) 2016, Centers Technologies
  *
- * @package	   JSONDB
- * @author	   Nana Axel
+ * @package    JSONDB
+ * @author     Nana Axel
  * @copyright  Copyright (c) 2016, Centers Technologies
- * @license	   http://spdx.org/licenses/GPL-3.0 GPL License
+ * @license    http://spdx.org/licenses/GPL-3.0 GPL License
  * @filesource
  */
 
 /**
  * Class Configuration
  *
- * @package		JSONDB
+ * @package     JSONDB
  * @subpackage  Utilities
  * @category    Configuration
- * @author		Nana Axel
+ * @author      Nana Axel
  */
 var Configuration = (function () {
     function Configuration() { }
@@ -32,7 +32,7 @@ var Configuration = (function () {
      * @param {string} password The user's password
      */
     Configuration.prototype.addUser = function (server, username, password) {
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
         var config = this.getConfig('users');
         config[server] = {
             'username': Util.crypt(username),
@@ -81,7 +81,7 @@ var Configuration = (function () {
      * @return {boolean}
      */
     Configuration.prototype._exists = function (filename) {
-        var Util = require('./Util');
+        var Util = new (require('./Util'))();
         var _p = require('path');
         return Util.existsSync(_p.normalize(_p.dirname(_p.dirname(__filename)) + '/config/' + filename + '.json'));
     };

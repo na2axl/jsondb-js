@@ -23,7 +23,7 @@
  * @author      Nana Axel
  */
 var QueryResult = (function () {
-    require('./Util').extends(QueryResult, Array);
+    (new (require('./Util'))()).extends(QueryResult, Array);
 
     var JSONDB = require('./JSONDB');
 
@@ -39,7 +39,7 @@ var QueryResult = (function () {
         this._parseResults();
         this.setFetchMode(JSONDB.FETCH_ARRAY);
 
-        instance = this;
+        this.async._i = this;
     }
 
     /**
@@ -163,6 +163,10 @@ var QueryResult = (function () {
      * @throws {Error}
      */
     QueryResult.prototype.async.fetch = function (mode, className, callback) {
+        this._i.fetchAsync(mode, className, callback);
+    };
+
+    QueryResult.prototype.fetchAsync = function (mode, className, callback) {
         mode = mode || null;
         className = className || null;
         callback = callback || null;
@@ -178,15 +182,15 @@ var QueryResult = (function () {
 
         setImmediate(function () {
             if (null !== mode) {
-                instance.setFetchMode(mode, className);
+                this.setFetchMode(mode, className);
             }
 
-            if (instance.query.queryIsExecuted()) {
-                if (instance.results.hasOwnProperty(instance.key)) {
-                    var ret = instance.current();
-                    instance.key++;
+            if (this.query.queryIsExecuted()) {
+                if (this.results.hasOwnProperty(this.key)) {
+                    var ret = this.current();
+                    this.key++;
                     callback(null, ret, function() {
-                        this.fetch(mode, className, callback);
+                        this.fetchAsync(mode, className, callback);
                     }.bind(this));
                 } else {
                     callback(null, false, null);
@@ -215,7 +219,7 @@ var QueryResult = (function () {
      * Adds information in results
      */
     QueryResult.prototype._parseResults = function () {
-        this.results = require('./Util').merge({
+        this.results = (new (require('./Util'))()).merge({
             '#queryString' : this.queryString(),
             '#elapsedtime' : this.query.bench().elapsed_time('jsondb_(query)_start', 'jsondb_(query)_end'),
             '#memoryusage' : this.query.bench().memory_usage('jsondb_(query)_start', 'jsondb_(query)_end')
@@ -227,6 +231,4 @@ var QueryResult = (function () {
 })();
 
 // Exports the module
-module.exports = function (result, query) {
-    return new QueryResult(result, query);
-};
+module.exports = QueryResult;
