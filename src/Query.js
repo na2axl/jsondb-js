@@ -23,12 +23,6 @@
  * @author      Nana Axel
  */
 var Query = (function () {
-    /**
-     * Current Query instance
-     * @type {Query}
-     */
-    // var instance;
-
     function Query(query, database) {
         this.cache = require('./Cache');
         this.queryParser = new (require('./QueryParser'))();
