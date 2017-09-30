@@ -64,4 +64,12 @@ fabric.properties
 .idea/
 out/
 gen/
+
+# Generated folders
 servers/
+
+# JSONDB Typescript
+ts/
+
+# Old sources
+src.old/
