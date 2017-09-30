@@ -17,7 +17,8 @@
     "json",
     "databases",
     "db",
-    "file"
+    "file",
+    "jql"
   ],
   "author": {
     "name": "Axel Nana",
@@ -29,7 +30,7 @@
   "dependencies": {
     "lockfile": "~1.0.2"
   },
-  "license": "GPL-3.0",
+  "license": "BSD-3",
   "bugs": {
     "url": "https://github.com/na2axl/jsondb-js/issues"
   },
