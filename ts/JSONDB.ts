@@ -129,7 +129,7 @@ export class JSONDB {
             Configuration.addUser(name, username, password);
 
             if (connect) {
-                return this.connect(name, username, password, null);
+                return this.connect(name, username, password);
             }
         }
         else {
