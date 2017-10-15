@@ -51,7 +51,7 @@ export class Util {
      * @return {any}
      */
     public static concat() {
-        let ret: any = {}
+        let ret: any = {};
         for (let i = 0, l = arguments.length; i < l; i++) {
             for (let p in arguments[i]) {
                 if (arguments[i].hasOwnProperty(p)) {
@@ -112,7 +112,7 @@ export class Util {
      * @return {object}
      */
     public static combine(key: Array<string>, values: Array<any>) {
-        let ret: any = {}
+        let ret: any = {};
 
         for (let i = 0, l = key.length; i < l; i++) {
             ret[key[i]] = values[i];
@@ -144,7 +144,7 @@ export class Util {
      * @return {object}
      */
     public static diff_key<T>(object1: Array<T>, object2: Array<T>) {
-        let ret: any = {}
+        let ret: any = {};
         for (let key in object1) {
             if (!(object1.hasOwnProperty(key) && object2.hasOwnProperty(key))) {
                 ret[key] = object1[key];
@@ -176,7 +176,7 @@ export class Util {
      * @return {object}
      */
     public static intersect_key<T>(object1: Array<T>, object2: Array<T>) {
-        let ret: any = {}
+        let ret: any = {};
         for (let key in object1) {
             if (!(object1.hasOwnProperty(key) && !object2.hasOwnProperty(key))) {
                 ret[key] = object1[key];
@@ -208,7 +208,7 @@ export class Util {
      */
     public static usort<T>(object: T, func: (after: T, now: T) => boolean) {
         func = func || ((after: T, now: T) => now > after);
-        let ret: any = {}
+        let ret: any = {};
         let tmp: Array<any> = [];
         for (let key in object) {
             if (object.hasOwnProperty(key)) {
@@ -245,7 +245,7 @@ export class Util {
      */
     public static uksort<T>(object: T, func: (after: T, now: T) => boolean) {
         func = func || ((after: T, now: T) => now > after);
-        let ret: any = {}
+        let ret: any = {};
         let tmp: Array<any> = [];
         for (let key in object) {
             if (object.hasOwnProperty(key)) {
@@ -281,8 +281,8 @@ export class Util {
      * @return {object}
      */
     public static merge(object1: any, object2: any): any {
-        object1 = object1 || {}
-        object2 = object2 || {}
+        object1 = object1 || {};
+        object2 = object2 || {};
         let ret = object1;
         for (let key in object2) {
             if (object2.hasOwnProperty(key)) {
@@ -304,7 +304,7 @@ export class Util {
         offset = offset || 0;
         length = length || l;
 
-        let ret: any = {}
+        let ret: any = {};
         let i = 0, j = 0;
         for (let key in object) {
             if (object.hasOwnProperty(key)) {
@@ -318,11 +318,17 @@ export class Util {
         return ret;
     }
 
+    /**
+     * Gets the string representation of a value.
+     * @param {any} value
+     * @returns {string}
+     */
     public static serialize(value: any): string {
         let ret: string = "";
         if (Array.isArray(value)) {
-            ret = "[array][" + value.join(':||:') + "]";
-        } else if (typeof value === 'object') {
+            ret = "[array][" + value.join(':|JDB|:') + "]";
+        }
+        else if (typeof value === 'object') {
             ret = "[object][" + JSON.stringify(value) + "]";
         }
         return ret;
@@ -341,8 +347,9 @@ export class Util {
             let serialized = regexp[2];
 
             if (type === 'array') {
-                ret = serialized.split(':||:');
-            } else if (type === 'object') {
+                ret = serialized.split(':|JDB|:');
+            }
+            else if (type === 'object') {
                 ret = JSON.parse(serialized);
             }
 
@@ -368,7 +375,6 @@ export class Util {
     /**
      * Checks if the given path exists and execute the given callback
      * @param {string}   path
-     * @param {function} cb
      */
     public static exists(path: string): Promise<boolean> {
         return new Promise<boolean>((executor, reject) => {
@@ -447,8 +453,8 @@ export class Util {
      * @param {function} callback  The callback function
      */
     public static whilst(condition: () => boolean, bridge: (r: any) => void, callback: (error: any) => void) {
-        let rewind = (function(c, b, r) {
-            return function() {
+        let rewind = (function (c, b, r) {
+            return function () {
                 try {
                     if (c() === false) {
                         r(null);
@@ -488,32 +494,42 @@ export class Util {
     /**
      * Create a new directory asynchronously
      * @param {string}   path      The path of the new directory
-     * @param {function} callback  The callback
      * @throws {Error}
      * @return {boolean}
      */
-    public static mkdir(path: string, callback: (error: any) => void) {
+    public static mkdir(path: string): Promise<void> {
         path = _p.normalize(path);
-        callback = callback || function() { }
 
-        Util.exists(path)
-            .then(((exists: boolean) => {
-                if (!exists) {
-                    Util.mkdir(_p.dirname(path), callback);
-                }
+        return new Promise<void>((executor, reject) => {
+            executor = executor || function () {
+            };
 
-                _f.mkdir(path, 0x1ff, function(error: any) {
-                    if (error) {
-                        callback(error);
+            Util.exists(_p.dirname(path))
+                .then((exists: boolean) => {
+                    if (!exists) {
+                        Util.mkdir(_p.dirname(path))
+                            .then(executor)
+                            .catch(reject);
                     }
-                    _f.chmod(path, 0x1ff, function(error: any) {
-                        if (error) {
-                            callback(error);
-                        }
-                        callback(null);
-                    });
-                })
-            }).bind(this));
+                    else {
+                        _f.mkdir(path, 0x1ff, function (error: any) {
+                            if (error) {
+                                return reject(error);
+                            }
+                            else {
+                                _f.chmod(path, 0x1ff, function (error: any) {
+                                    if (error) {
+                                        return reject(error);
+                                    }
+                                    else {
+                                        executor();
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+        });
     }
 
     /**
@@ -538,14 +554,51 @@ export class Util {
      * @param {string} path The path to the file to write
      * @param {string} content The content of the file
      */
-    public static writeTextFile(path: string, content: string): boolean {
-        if (_f.openSync(path, 'w'))
-        {
+    public static writeTextFileSync(path: string, content: string): boolean {
+        if (_f.openSync(path, 'w')) {
             _f.chmodSync(path, 0x1ff);
             _f.writeFileSync(path, content);
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * Writes asynchronously a text into a file
+     * @param {string} path The path to the file to write
+     * @param {string} content The content of the file
+     * @returns {Promise<boolean>}
+     */
+    public static writeTextFile(path: string, content: string): Promise<boolean> {
+        return new Promise<boolean>((executor, reject) => {
+            try {
+                _f.open(path, 'w', (op_err: any) => {
+                    if (op_err) {
+                        reject(op_err);
+                        return executor(false);
+                    }
+
+                    _f.chmod(path, 0x1ff, (mod_err: any) => {
+                        if (mod_err) {
+                            reject(mod_err);
+                            return executor(false);
+                        }
+
+                        _f.writeFile(path, content, (w_err: any) => {
+                            if (w_err) {
+                                reject(w_err);
+                                return executor(false);
+                            }
+
+                            executor(true);
+                        });
+                    });
+                });
+            }
+            catch (e) {
+                return reject(e);
+            }
+        });
     }
 }
