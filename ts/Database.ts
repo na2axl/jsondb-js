@@ -19,8 +19,10 @@ declare var __filename: string;
 import { Configuration } from "./Configuration";
 import { Benchmark } from "./Benchmark";
 import { Util } from "./Util";
+import { PreparedQueryStatement } from "./PreparedQueryStatement";
 import { UserConfiguration } from "./config/User";
 import { TablePrototype } from "./types/TablePrototype";
+import { Query } from './Query';
 
 import * as _f from 'fs';
 import * as _p from 'path';
@@ -87,13 +89,73 @@ export class Database {
     }
 
     /**
+     * Wrapper for async operations.
+     * @returns {{exists: ((database: string) => Promise<boolean>); tableExists: ((name: string) => Promise<boolean>); createDatabase: ((name: string) => Promise<Database>); createTable: ((name: string, prototype: TablePrototype) => Promise<Database>); query: ((query: string) => Promise<any>); queries: ((queries: string) => Promise<any>); prepare: ((query: string) => Promise<PreparedQueryStatement>)}}
+     */
+    public get async(): {
+        readonly exists: (database: string) => Promise<boolean>,
+        readonly tableExists: (name: string) => Promise<boolean>,
+        readonly createDatabase: (name: string) => Promise<Database>,
+        readonly createTable: (name: string, prototype: TablePrototype) => Promise<Database>,
+        readonly query: (query: string) => Promise<any>,
+        readonly queries: (queries: string) => Promise<any>,
+        readonly prepare: (query: string) => Promise<PreparedQueryStatement>
+    }
+    {
+        return {
+            /**
+             * Checks asynchoronously if a database exist in the current working server.
+             * @param {string} database The name of the database.
+             */
+            exists: (database: string) => this.existsAsync(database),
+            /**
+             * Checks asynchronously if a table exists in the current working database
+             * @param {string} name The name of the teable
+             * @returns {boolean}
+             */
+            tableExists: (name: string) => this.tableExistsAsync(name),
+            /**
+             * Creates a new database asynchronously in the current working server
+             * @param {string} name The name of the database to create
+             * @returns {Promise<Database>} The current database instance
+             * @throws {Error} The database's name is missing
+             * @throws {Error} The database's name is missing
+             */
+            createDatabase: (name: string) => this.createDatabaseAsync(name),
+            /**
+             * Creates asynchronously a new table in the current working database.
+             * @param {string} name The name of the table
+             * @param {Array} prototype The prototype of the table
+             * @returns {Promise<Database>} The current Database instance
+             * @throws {Error}
+             */
+            createTable: (name: string, prototype: TablePrototype) => this.createTableAsync(name, prototype),
+            /**
+             * Sends a query asynchronously to the database.
+             * @param {string} query The query to send to the database
+             */
+            query: (query: string) => this.queryAsync(query),
+            /**
+             * Sends multiple queries asynchronously.
+             * @param {string} queries The queries to send to the database
+             */
+            queries: (queries: string) => this.queriesAsync(queries),
+            /**
+             * Sends a prepared query asynchronously.
+             * @param {string} query The query to send to the database
+             */
+            prepare: (query: string) => this.prepareAsync(query)
+        }
+    }
+
+    /**
      * Database Manager constructor.
      * @param {string} server The name of the server to connect on
      * @param {string} username The username which match the server
      * @param {string} password The password which match the username
      * @param {string} database The name of the database
      */
-    constructor(server: string, username: string, password: string, database: string) {
+    constructor(server: string, username: string, password: string, database?: string) {
 
         if (!Util.isset(server) || !Util.isset(username) || !Util.isset(password)) {
             throw new Error('Database Error: Can\'t connect to the server, missing parameters.');
@@ -127,7 +189,7 @@ export class Database {
 
             if (Util.isset(database)) {
                 try {
-                    this.setDatabase(database);
+                    this.setDatabase(<string>database);
                 } catch (e) {
                     Benchmark.mark("Database_(connect)_end");
                     throw e;
@@ -185,30 +247,64 @@ export class Database {
      * Checks asynchoronously if a database exist in the current working server.
      * @param {string} database The name of the database.
      */
-    public existsAsync(database: string): Promise<boolean>
-    {
-        return new Promise<boolean>((executor, reject) =>
-        {
-            try
-            {
+    public existsAsync(database: string): Promise<boolean> {
+        return new Promise<boolean>((executor, reject) => {
+            try {
                 executor = executor || null;
 
-                if (null === executor || !(typeof executor === "function"))
-                {
-                    throw new Error("JSONDB Error: Can't check asynchronously if a database exists without a callback.");
+                if (null === executor || !(typeof executor === "function")) {
+                    return reject(new Error("JSONDB Error: Can't check asynchronously if a database exists without a callback."));
                 }
 
-                if (!Util.isset(database))
-                {
-                    executor(false);
+                if (!Util.isset(database)) {
+                    return executor(false);
                 }
 
                 Util.exists(Database.getDatabasePath(this.server, database))
                     .then(executor)
                     .catch(reject);
             }
-            catch (e)
-            {
+            catch (e) {
+                return reject(e);
+            }
+        });
+    }
+
+    /**
+     * Checks if a table exists in the current working database
+     * @param {string} name The name of the teable
+     * @returns {boolean}
+     */
+    public tableExists(name: string): boolean {
+        if (name === null || name === '') {
+            return false;
+        }
+        return Util.existsSync(Database.getTablePath(this.server, this.database, name));
+    }
+
+
+    /**
+     * Checks asynchronously if a table exists in the current working database
+     * @param {string} name The name of the teable
+     * @returns {boolean}
+     */
+    public tableExistsAsync(name: string): Promise<boolean> {
+        let that = this;
+        return new Promise<boolean>((executor, reject) => {
+            try {
+                if (null === executor || !(typeof executor === 'function')) {
+                    return reject(new Error("Database Error: Can't check asynchronously if a database exist without a callback."));
+                }
+
+                if (null === name || name === '') {
+                    return executor(false);
+                }
+
+                Util.exists(Database.getTablePath(that.server, that.database, name))
+                    .then(executor)
+                    .catch(reject);
+            }
+            catch (e) {
                 return reject(e);
             }
         });
@@ -251,10 +347,75 @@ export class Database {
     }
 
     /**
+     * Creates a new database asynchronously in the current working server
+     * @param {string} name The name of the database to create
+     * @returns {Promise<Database>} The current database instance
+     * @throws {Error} The database's name is missing
+     * @throws {Error} The database's name is missing
+     */
+    public createDatabaseAsync(name: string): Promise<Database> {
+        return new Promise<Database>((executor, reject) => {
+            try {
+                executor = executor || null;
+
+                if (null === executor || !(typeof executor === "function")) {
+                    return reject(new Error("Database Error: Can't create a database asynchronously without a callback."));
+                }
+
+                Benchmark.mark('Database_(createDatabase)_start');
+                if (null === name) {
+                    Benchmark.mark('Database_(createDatabase)_end');
+                    return reject(new Error("Database Error: Can't create the database, the database's name is missing."));
+                }
+                if (null === this.server) {
+                    Benchmark.mark('Database_(createDatabase)_end');
+                    return reject(new Error(`Database Error: Can't create the database "${name}", there is no connection established with a server.`));
+                }
+
+                var path = Database.getDatabasePath(this.server, name);
+                var that = this;
+
+                Util.exists(path)
+                    .then((exists) => {
+                        if (exists) {
+                            Benchmark.mark('Database_(createDatabase)_end');
+                            return reject(new Error("Database Error: Can't create the database \"" + name + "\" in the server \"" + that.server + "\", the database already exist."));
+                        }
+                        else {
+                            Util.mkdir(path)
+                                .then(() => {
+                                    _f.chmod(path, 0x1ff, (err: any) => {
+                                        if (err) {
+                                            return reject(err);
+                                        }
+                                        else {
+                                            Benchmark.mark('Database_(createDatabase)_end');
+                                            executor(that);
+                                        }
+                                    });
+                                })
+                                .catch(err => {
+                                    if (err) {
+                                        Benchmark.mark('Database_(createDatabase)_end');
+                                        return reject(new Error("Database Error: Can't create the database \"" + name + "\" in the server \"" + that.server + "\""));
+                                    }
+                                });
+                        }
+                    })
+                    .catch(reject);
+            }
+            catch (e) {
+                return reject(e);
+            }
+        });
+    }
+
+    /**
      * Creates a new table in the current working database.
      * @param {string} name The name of the table
      * @param {Array} prototype The prototype of the table
      * @returns {Database} The current Database instance
+     * @throws {Error}
      */
     public createTable(name: string, prototype: TablePrototype): Database {
         Benchmark.mark("Database_(createTable)_start");
@@ -270,12 +431,12 @@ export class Database {
 
         var path = Util.makePath(this._serverName, this._databaseName, name + ".jdbt");
 
-        if (Util.exists(path)) {
+        if (Util.existsSync(path)) {
             Benchmark.mark("Database_(createTable)_end");
             throw new Error(`Database Error: Can't create the table "${name}" in the database "${this._databaseName}". The table already exist.`);
         }
 
-        var fields = new Array<string>();
+        var fields: Array<string> = [];
         var properties = {
             last_insert_id: 0,
             last_valid_row_id: 0,
@@ -325,7 +486,7 @@ export class Database {
                         var linkInfo = link.split('.');
                         var linkTablePath = Util.makePath(this._serverName, this._databaseName, linkInfo[0] + ".jdbt");
 
-                        if (!Util.exists(linkTablePath)) {
+                        if (!Util.existsSync(linkTablePath)) {
                             throw new Error("Database Error: Can't create the table \"" + name +
                                 "\". An error occur when linking the column \"" + field +
                                 "\" with the column \"" + linkInfo[1] + "\", the table \"" + linkInfo[0] +
@@ -408,14 +569,13 @@ export class Database {
         let tableProperties = Util.merge(properties, prototype);
         fields.unshift("#rowid");
 
-        var data =  {
+        var data = {
             prototype: fields,
             properties: tableProperties,
             data: {}
         };
 
-        if (Util.writeTextFile(path, JSON.stringify(data)))
-        {
+        if (Util.writeTextFileSync(path, JSON.stringify(data))) {
             Benchmark.mark("Database_(createTable)_end");
             return this;
         }
@@ -426,21 +586,294 @@ export class Database {
     }
 
     /**
-     * Sends a query to the data.
+     * Creates asynchronously a new table in the current working database.
+     * @param {string} name The name of the table
+     * @param {Array} prototype The prototype of the table
+     * @returns {Promise<Database>} The current Database instance
+     * @throws {Error}
+     */
+    public createTableAsync(name: string, prototype: TablePrototype): Promise<Database> {
+        return new Promise<Database>((executor, reject) => {
+            try {
+                if (null === executor || !(typeof executor === 'function')) {
+                    return reject(new Error("Database Error: Can't create a table without a callback."));
+                }
+
+                if (null === name || null === prototype) {
+                    return reject(new Error('Database Error: Can\'t create table, missing parameters.'));
+                }
+
+                Benchmark.mark('Database_(createTable)_start');
+                if (!this.isWorkingDatabase) {
+                    Benchmark.mark('Database_(createTable)_end');
+                    return reject(new Error('Database Error: Trying to create a table without using a database.'));
+                }
+
+                var path = Util.makePath(this._serverName, this._databaseName, name + ".jdbt");
+
+                Util.exists(path)
+                    .then(exists => {
+                        if (exists) {
+                            Benchmark.mark("Database_(createTable)_end");
+                            return reject(new Error(`Database Error: Can't create the table "${name}" in the database "${this._databaseName}". The table already exist.`));
+                        }
+
+                        var fields: Array<string> = [];
+                        var properties = {
+                            last_insert_id: 0,
+                            last_valid_row_id: 0,
+                            last_link_id: 0,
+                            primary_keys: new Array<string>(),
+                            unique_keys: new Array<string>()
+                        };
+                        var aiExist = false;
+
+                        for (let field in prototype) {
+                            var prop = prototype[field];
+                            var hasAi = prop.auto_increment !== null;
+                            var hasPk = prop.primary_key !== null;
+                            var hasUk = prop.unique_key !== null;
+                            var hasTp = prop.type !== null;
+
+                            if (aiExist && hasAi) {
+                                Benchmark.mark("Database_(createTable)_end");
+                                return reject(new Error("Database Error: Can't use the \"auto_increment\" property on more than one field."));
+                            }
+
+                            if (!aiExist && hasAi) {
+                                aiExist = true;
+                                prototype[field].unique_key = true;
+                                prototype[field].not_null = true;
+                                prototype[field].type = "int";
+                                hasTp = true;
+                                hasUk = true;
+                            }
+
+                            if (hasPk) {
+                                prototype[field].not_null = true;
+                                properties.primary_keys.push(field);
+                            }
+
+                            if (hasUk) {
+                                prototype[field].not_null = true;
+                                properties.unique_keys.push(field);
+                            }
+
+                            if (hasTp) {
+                                var fType = prop.type;
+
+                                if (fType != null) {
+                                    if (/link\\(.+\\)/.test(fType.toString())) {
+                                        var link = fType.toString().replace(new RegExp("link\\((.+)\\)"), "$1");
+                                        var linkInfo = link.split('.');
+                                        var linkTablePath = Util.makePath(this._serverName, this._databaseName, linkInfo[0] + ".jdbt");
+
+                                        if (!Util.existsSync(linkTablePath)) {
+                                            return reject(new Error("Database Error: Can't create the table \"" + name +
+                                                "\". An error occur when linking the column \"" + field +
+                                                "\" with the column \"" + linkInfo[1] + "\", the table \"" + linkInfo[0] +
+                                                "\" doesn't exist in the database \"" + this._databaseName + "\"."));
+                                        }
+
+                                        var linkTableData = Database.getTableData(linkTablePath);
+                                        if (linkTableData.prototype.indexOf(linkInfo[1]) == -1) {
+                                            return reject(new Error("Database Error: Can't create the table \"" + name +
+                                                "\". An error occur when linking the column \"" + field +
+                                                "\" with the column \"" + linkInfo[1] + "\", the column \"" +
+                                                linkInfo[1] + "\" doesn't exist in the table \"" + linkInfo[0] +
+                                                "\" ."));
+                                        }
+                                        if ((linkTableData["properties"]["primary_keys"] != null &&
+                                                Util.objectToArray(linkTableData.properties.primary_keys).indexOf(linkInfo[1]) == -1)
+                                            ||
+                                            (linkTableData["properties"]["unique_keys"] != null &&
+                                                Util.objectToArray(linkTableData.properties.unique_keys).indexOf(linkInfo[1]) == -1)) {
+                                            return reject(new Error("Database Error: Can't create the table \"" + name +
+                                                "\". An error occur when linking the column \"" + field +
+                                                "\" with the column \"" + linkInfo[1] + "\", the column \"" +
+                                                linkInfo[1] +
+                                                "\" is not a PRIMARY KEY or an UNIQUE KEY in the table \"" +
+                                                linkInfo[0] + "\" ."));
+                                        }
+
+                                        delete prototype[field].default;
+                                        delete prototype[field].max_length;
+                                    }
+                                    else {
+                                        switch (fType.toString()) {
+                                            case "bool":
+                                            case "boolean":
+                                                if (prototype[field].default !== null) {
+                                                    if (prototype[field].default !== true && prototype[field].default !== false) {
+                                                        prototype[field].default = false;
+                                                    }
+                                                }
+                                                delete prototype[field].max_length;
+                                                break;
+                                            case "int":
+                                            case "integer":
+                                            case "number":
+                                                if (prototype[field].default !== null) {
+                                                    prototype[field].default = parseInt(<string>prototype[field].default) || 0;
+                                                }
+                                                delete prototype[field].max_length;
+                                                break;
+                                            case "float":
+                                            case "decimal":
+                                                if (prototype[field].default !== null) {
+                                                    prototype[field].default = parseFloat(<string>prototype[field].default) || 0;
+                                                }
+                                                if (prototype[field].max_length !== null) {
+                                                    prototype[field].max_length = parseInt((<number>prototype[field].max_length).toString()) || 0;
+                                                }
+                                                break;
+                                            case "string":
+                                                if (prototype[field].default !== null) {
+                                                    prototype[field].default = (<string>prototype[field].default).toString();
+                                                }
+                                                if (prototype[field].max_length !== null) {
+                                                    prototype[field].max_length = parseInt((<number>prototype[field].max_length).toString()) || 0;
+                                                }
+                                                break;
+                                            default:
+                                                return reject(new TypeError(`Database Error: The type "${fType}" isn't supported by JSONDB.`));
+                                        }
+                                    }
+                                }
+                            }
+                            else {
+                                prototype[field].type = "string";
+                            }
+
+                            fields.push(field);
+                        }
+
+                        let tableProperties = Util.merge(properties, prototype);
+                        fields.unshift("#rowid");
+
+                        let data = {
+                            prototype: fields,
+                            properties: tableProperties,
+                            data: {}
+                        };
+
+                        Util.writeTextFile(path, JSON.stringify(data))
+                            .then(res => {
+                                if (res) {
+                                    Benchmark.mark("Database_(createTable)_end");
+                                    return executor(this);
+                                }
+                            })
+                            .catch(reason => {
+                                if (reason) {
+                                    Benchmark.mark("Database_(createTable)_end");
+                                    return reject(new Error(`Database Error: Can't create file "${path}".`));
+                                }
+                            });
+                    })
+                    .catch(reject);
+            }
+            catch (e) {
+                return reject(e);
+            }
+        });
+    }
+
+    /**
+     * Sends a query to the database.
      * @param {string} query The query to send to the database
      */
-    public query(query: string): any
-    {
-        return new Query(this).Send(query);
+    public query(query: string): any {
+        return new Query(this).send(query);
+    }
+
+    /**
+     * Sends a query asynchronously to the database.
+     * @param {string} query The query to send to the database
+     */
+    public queryAsync(query: string): Promise<any> {
+        var that = this;
+
+        return new Promise<any>((executor, reject) => {
+            try {
+
+                executor = executor || null;
+
+                if (null === executor || !(typeof executor === 'function')) {
+                    return reject(new Error("Database Error: Can't send a query asynchronously without a callback."));
+                }
+
+                executor(that.query(query));
+
+            } catch (e) {
+                return reject(e);
+            }
+        });
     }
 
     /**
      * Sends multiple queries at once.
-     * @param {string} query The queries to send to the database
+     * @param {string} queries The queries to send to the database
      */
-    public multiQuery(queries: string): any
-    {
-        return new Query(this).MultiSend(queries);
+    public queries(queries: string): any {
+        return new Query(this).multiSend(queries);
+    }
+
+    /**
+     * Sends multiple queries asynchronously.
+     * @param {string} queries The queries to send to the database
+     */
+    public queriesAsync(queries: string): Promise<any> {
+        var that = this;
+
+        return new Promise<any>((executor, reject) => {
+            try {
+
+                executor = executor || null;
+
+                if (null === executor || !(typeof executor === 'function')) {
+                    return reject(new Error("Database Error: Can't send a query asynchronously without a callback."));
+                }
+
+                executor(that.queries(queries));
+
+            } catch (e) {
+                return reject(e);
+            }
+        });
+    }
+
+    /**
+     * Sends a prepared query.
+     * @param {string} query The query
+     * @return {PreparedQueryStatement}
+     */
+    public prepare(query: string): PreparedQueryStatement {
+        return new Query(this).prepare(query);
+    }
+
+    /**
+     * Sends a prepared query asynchronously.
+     * @param {string} query The query to send to the database
+     */
+    public prepareAsync(query: string): Promise<any> {
+        var that = this;
+
+        return new Promise<any>((executor, reject) => {
+            try {
+
+                executor = executor || null;
+
+                if (null === executor || !(typeof executor === 'function')) {
+                    return reject(new Error("Database Error: Can't send a query asynchronously without a callback."));
+                }
+
+                executor(that.prepare(query));
+
+            } catch (e) {
+                return reject(e);
+            }
+        });
     }
 
     /**
@@ -453,11 +886,13 @@ export class Database {
 
     /**
      * Returns the path to a table
-     * @param {null|string} table The table name
+     * @param {string} server The server name
+     * @param {string} database The database name
+     * @param {string} table The table name
      * @return {string}
      */
     public static getTablePath(server: string, database: string, table: string): string {
-        return server + '/' + database + '/' + table + ".json";
+        return server + _p.sep + database + _p.sep + table + ".jdbt";
     }
 
     /**
@@ -478,7 +913,5 @@ export class Database {
     public static getDatabasePath(server: string, database: string): string {
         return server + _p.sep + database;
     }
-
-
 
 }
