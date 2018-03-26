@@ -9,13 +9,13 @@
  *
  * @package    JSONDB
  * @author     Nana Axel <ax.lnana@outlook.com>
- * @copyright  Copyright (c) 2016-2017, Alien Technologies
+ * @copyright  Copyright (c) 2016-2018, Aliens Group
  * @license    https://spdx.org/licenses/BSD-3-Clause.html BSD 3-clause "New" or "Revised" License
  * @file       Benchmark.ts
  */
 
 /**
- * A BechmarkPoint, wich stores the time and the consumed memory.
+ * A BenchmarkPoint, wich stores the time and the consumed memory.
  */
 export interface BenchmarkPoint
 {
@@ -24,7 +24,7 @@ export interface BenchmarkPoint
 }
 
 /**
- * A collection of BechmarkPoints.
+ * A collection of BenchmarkPoints.
  */
 export interface BenchmarkPointCollection
 {
@@ -97,7 +97,7 @@ export class Benchmark
      * Calculate the memory usage of a benchmark point
      * @param  {string}  point1  The name of the first benchmark point
      * @param  {string}  point2  The name of the second benchmark point
-     * @return {*}
+     * @return {number}
      */
     public static memory_usage(point1: string, point2: string)
     {
