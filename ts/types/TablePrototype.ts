@@ -9,7 +9,7 @@
  *
  * @package    JSONDB
  * @author     Nana Axel <ax.lnana@outlook.com>
- * @copyright  Copyright (c) 2016-2017, Alien Technologies
+ * @copyright  Copyright (c) 2016-2018, Aliens Group
  * @license    https://spdx.org/licenses/BSD-3-Clause.html BSD 3-clause "New" or "Revised" License
  * @file       TablePrototype.ts
  */

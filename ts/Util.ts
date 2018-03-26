@@ -9,14 +9,14 @@
  *
  * @package    JSONDB
  * @author     Nana Axel <ax.lnana@outlook.com>
- * @copyright  Copyright (c) 2016-2017, Alien Technologies
+ * @copyright  Copyright (c) 2016-2018, Aliens Group
  * @license    https://spdx.org/licenses/BSD-3-Clause.html BSD 3-clause "New" or "Revised" License
  * @file       Util.ts
  */
 
-import * as _f from 'fs';
-import * as _p from 'path';
-import * as _c from 'crypto';
+import * as _f from "fs";
+import * as _p from "path";
+import * as _c from "crypto";
 
 /**
  * Class Util
@@ -42,13 +42,13 @@ export class Util {
     public static crypt(string: string) {
         let shasum = _c.createHash('sha1');
         shasum.update(string + Util.cryptSalt);
-        return shasum.digest("HEX");
+        return shasum.digest("hex");
     }
 
     /**
      * Concatenates two or more objects
-     * @param {...any}
-     * @return {any}
+     * @param {...object}
+     * @return {object}
      */
     public static concat() {
         let ret: any = {};
@@ -77,7 +77,7 @@ export class Util {
 
     /**
      * Returns an array of values
-     * @param {any} object
+     * @param {object} object
      * @return {Array}
      */
     public static objectToArray(object: any) {
@@ -92,7 +92,7 @@ export class Util {
 
     /**
      * Returns the length of an object
-     * @param {any} object
+     * @param {object} object
      * @return {number}
      */
     public static count(object: any) {
@@ -127,7 +127,7 @@ export class Util {
      * @param {Array} array2
      * @return {Array}
      */
-    public static diff<T>(array1: Array<T>, array2: Array<T>) {
+    public static diff(array1: Array<any>, array2: Array<any>) {
         let ret = [];
         for (let i = 0, l = array1.length; i < l; i++) {
             if (!~array2.indexOf(array1[i])) {
@@ -143,7 +143,7 @@ export class Util {
      * @param {object} object2
      * @return {object}
      */
-    public static diff_key<T>(object1: Array<T>, object2: Array<T>) {
+    public static diff_key(object1: any, object2: any) {
         let ret: any = {};
         for (let key in object1) {
             if (!(object1.hasOwnProperty(key) && object2.hasOwnProperty(key))) {
@@ -191,7 +191,7 @@ export class Util {
      * @return {object}
      */
     public static flip(object: any) {
-        let ret: any = {}
+        let ret: any = {};
         for (let key in object) {
             if (object.hasOwnProperty(key)) {
                 ret[object[key]] = key;
@@ -206,10 +206,10 @@ export class Util {
      * @param {function} func
      * @return {object}
      */
-    public static usort<T>(object: T, func: (after: T, now: T) => boolean) {
+    public static usort<T>(object: any, func: (after: T, now: T) => boolean) {
         func = func || ((after: T, now: T) => now > after);
         let ret: any = {};
-        let tmp: Array<any> = [];
+        let tmp: Array<T> = [];
         for (let key in object) {
             if (object.hasOwnProperty(key)) {
                 tmp.push(object[key]);
@@ -243,10 +243,10 @@ export class Util {
      * @param {function} func
      * @return {object}
      */
-    public static uksort<T>(object: T, func: (after: T, now: T) => boolean) {
-        func = func || ((after: T, now: T) => now > after);
+    public static uksort(object: any, func: (after: string, now: string) => boolean) {
+        func = func || ((after: string, now: string) => now > after);
         let ret: any = {};
-        let tmp: Array<any> = [];
+        let tmp: Array<string> = [];
         for (let key in object) {
             if (object.hasOwnProperty(key)) {
                 tmp.push(key);
@@ -320,16 +320,16 @@ export class Util {
 
     /**
      * Gets the string representation of a value.
-     * @param {any} value
+     * @param {object} value
      * @returns {string}
      */
     public static serialize(value: any): string {
         let ret: string = "";
         if (Array.isArray(value)) {
-            ret = "[array][" + value.join(':|JDB|:') + "]";
+            ret = `[array][${value.join(":|JDB|:")}]`;
         }
-        else if (typeof value === 'object') {
-            ret = "[object][" + JSON.stringify(value) + "]";
+        else if (typeof value === "object") {
+            ret = `[object][${JSON.stringify(value)}]`;
         }
         return ret;
     }
@@ -346,10 +346,10 @@ export class Util {
             let type = regexp[1];
             let serialized = regexp[2];
 
-            if (type === 'array') {
-                ret = serialized.split(':|JDB|:');
+            if (type === "array") {
+                ret = serialized.split(":|JDB|:");
             }
-            else if (type === 'object') {
+            else if (type === "object") {
                 ret = JSON.parse(serialized);
             }
 
@@ -380,13 +380,15 @@ export class Util {
         return new Promise<boolean>((executor, reject) => {
             try {
                 _f.stat(path, (error: any) => {
-                    if (error)
-                        executor(false);
-
-                    executor(true);
+                    if (error) {
+                        reject(error);
+                        return executor(false);
+                    }
+                    return executor(true);
                 });
             } catch (e) {
-                executor(false);
+                reject(e);
+                return executor(false);
             }
         });
     }
@@ -398,7 +400,7 @@ export class Util {
      */
     public static throwOrCall(cb: () => void, thr: Error) {
         cb = cb || null;
-        if (null === cb || !(typeof cb === 'function')) {
+        if (null === cb || !(typeof cb === "function")) {
             throw thr;
         }
         let slice = [].slice;
@@ -440,7 +442,7 @@ export class Util {
             number = parseInt(number);
 
         if (number < 10 && number >= 0) {
-            number = '0' + number;
+            number = `0${number}`;
         }
 
         return <string>number;
@@ -449,8 +451,8 @@ export class Util {
     /**
      * Asynchronous while
      * @param {function} condition The while condition
-     * @param {function} bridge    The function used for recursion
-     * @param {function} callback  The callback function
+     * @param {function} bridge    The function used for recursion (The loop's content)
+     * @param {function} callback  The callback function (The function called when the loop finishes)
      */
     public static whilst(condition: () => boolean, bridge: (r: any) => void, callback: (error: any) => void) {
         let rewind = (function (c, b, r) {
@@ -482,8 +484,10 @@ export class Util {
             this.mkdirSync(_p.dirname(path));
         }
 
-        if (_f.mkdirSync(path, 0x1ff) === false) {
-            throw new Error('Cannot create directory "' + path + '"');
+        _f.mkdirSync(path, 0x1ff);
+
+        if (!this.existsSync(path)) {
+            throw new Error(`Cannot create directory "${path}"`);
         }
         else {
             _f.chmodSync(path, 0x1ff);
@@ -501,8 +505,8 @@ export class Util {
         path = _p.normalize(path);
 
         return new Promise<void>((executor, reject) => {
-            executor = executor || function () {
-            };
+            executor = executor || (() => {
+            });
 
             Util.exists(_p.dirname(path))
                 .then((exists: boolean) => {
@@ -534,19 +538,18 @@ export class Util {
 
     /**
      * Checks if a value is set, not null, and not undefined.
-     * @param {any} value The value to check.
+     * @param {object} value The value to check.
      * @return {boolean}
      */
     public static isset(value: any): boolean {
-        return value && value !== null && value !== undefined;
+        return !!value && value !== null && value !== undefined;
     }
 
     /**
      * Create a path from parts.
-     * @param parts
      */
     public static makePath(...parts: string[]): string {
-        return _p.join(parts);
+        return _p.join.apply(_p, parts);
     }
 
     /**
@@ -555,7 +558,7 @@ export class Util {
      * @param {string} content The content of the file
      */
     public static writeTextFileSync(path: string, content: string): boolean {
-        if (_f.openSync(path, 'w')) {
+        if (_f.openSync(path, "w")) {
             _f.chmodSync(path, 0x1ff);
             _f.writeFileSync(path, content);
             return true;

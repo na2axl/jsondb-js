@@ -9,13 +9,13 @@
  *
  * @package    JSONDB
  * @author     Nana Axel <ax.lnana@outlook.com>
- * @copyright  Copyright (c) 2016-2017, Alien Technologies
+ * @copyright  Copyright (c) 2016-2018, Aliens Group
  * @license    https://spdx.org/licenses/BSD-3-Clause.html BSD 3-clause "New" or "Revised" License
  * @file       Cache.ts
  */
 
-import { Util } from "./Util";
-import { Database } from "./Database";
+import {Util} from "./Util";
+import {Database} from "./Database";
 
 /**
  * Class Cache
@@ -25,8 +25,7 @@ import { Database } from "./Database";
  * @category   Cache
  * @author     Nana Axel <ax.lnana@outlook.com>
  */
-export class Cache
-{
+export class Cache {
     /**
      * Cache array
      * @access private
@@ -38,55 +37,47 @@ export class Cache
     /**
      * Gets cached data
      * @param {object|string} path The path to the table
-     * @return {any}
+     * @return {object}
      */
-    public static get(path: string | object): any
-    {
-        if (typeof path === "string")
-        {
-            if (!Cache._cache.hasOwnProperty(path))
-            {
+    public static get(path: string | object): any {
+        if (typeof path === "string") {
+            if (!Cache._cache.hasOwnProperty(path)) {
                 Cache._cache[path] = Database.getTableData(path);
             }
             return Cache._cache[path];
         }
-        else
-        {
-            var results = new Array<any>();
-            for (var id in path)
-            {
-                results.push(Cache.get(id));
+        else {
+            let results = [];
+            for (let id in path) {
+                if (path.hasOwnProperty(id))
+                    results.push(Cache.get(id));
             }
             return results;
         }
-    };
+    }
 
     /**
      * Updates the cached data for a table
      * @param {string}  path The path to the table
-     * @param {any}     data The data to cache
+     * @param {object}  data The data to cache
      * @return {void}
      */
-    public static update(path: string, data: any)
-    {
+    public static update(path: string, data: any) {
         data = data || null;
-        if (Util.isset(data))
-        {
+        if (Util.isset(data)) {
             Cache._cache[path] = data;
-        } else
-        {
+        } else {
             Cache._cache[path] = Database.getTableData(path);
         }
-    };
+    }
 
     /**
      * Resets the cache
      * @return {Cache}
      */
-    public static reset()
-    {
+    public static reset() {
         Cache._cache = {};
         return this;
-    };
+    }
 
 }

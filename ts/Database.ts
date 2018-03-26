@@ -1,7 +1,7 @@
 /**
  * JSONDB - JSON Database Manager
  *
- * Manage JSON files as databases with JSONDB Query Lqanguage (JQL)
+ * Manage JSON files as databases with JSONDB Query Language (JQL)
  *
  * This content is released under the BSD-3-Clause License
  *
@@ -10,22 +10,22 @@
  * @package    JSONDB
  * @author     Nana Axel <ax.lnana@outlook.com>
  * @copyright  Copyright (c) 2016-2017, Alien Technologies
- * @license    http://spdx.org/licences/GPL-3.0 GPL License
+ * @license    https://spdx.org/licenses/BSD-3-Clause.html BSD 3-clause "New" or "Revised" License
  * @file       Database.ts
  */
 
 declare var __filename: string;
 
-import { Configuration } from "./Configuration";
-import { Benchmark } from "./Benchmark";
-import { Util } from "./Util";
-import { PreparedQueryStatement } from "./PreparedQueryStatement";
-import { UserConfiguration } from "./config/User";
-import { TablePrototype } from "./types/TablePrototype";
-import { Query } from './Query';
+import {Configuration} from "./Configuration";
+import {Benchmark} from "./Benchmark";
+import {Util} from "./Util";
+import {PreparedQueryStatement} from "./PreparedQueryStatement";
+import {UserConfiguration} from "./config/User";
+import {TablePrototype} from "./types/TablePrototype";
+import {Query} from './Query';
 
-import * as _f from 'fs';
-import * as _p from 'path';
+import * as _f from "fs";
+import * as _p from "path";
 
 /**
  * Class Database
@@ -49,9 +49,66 @@ export class Database {
     private _databaseName: string;
 
     /**
+     * Database Manager constructor.
+     * @param {string} server The name of the server to connect on
+     * @param {string} username The username which match the server
+     * @param {string} password The password which match the username
+     * @param {string} database The name of the database
+     */
+    constructor(server: string, username: string, password: string, database?: string) {
+        if (!Util.isset(server) || !Util.isset(username) || !Util.isset(password)) {
+            throw new Error('Database Error: Can\'t connect to the server, missing parameters.');
+        }
+
+        let userFound: boolean = false;
+
+        Benchmark.mark("Database_(connect)_start");
+        {
+            let config = Configuration.getConfig<UserConfiguration>("users");
+
+            if (!config.hasOwnProperty(server)) {
+                Benchmark.mark('Database_(connect)_end');
+                throw new Error(`Database Error: There is no registered server with the name "${server}".`);
+            }
+
+            for (let user of config[server]) {
+                userFound = user.username === Util.crypt(username) && user.password === Util.crypt(password);
+
+                if (userFound)
+                    break;
+            }
+
+            if (!userFound) {
+                Benchmark.mark("Database_(connect)_end");
+                throw new Error(`Database Error: User's authentication failed for user "${username}" on server "${server}" (Using password: "${password.length > 0 ? "Yes" : "No"}"). Access denied.`);
+            }
+
+            this._serverName = Util.makePath(_p.normalize(_p.dirname(_p.dirname(__filename)) + '/servers/' + server));
+            this._username = username;
+
+            if (Util.isset(database)) {
+                try {
+                    this.setDatabase(<string>database);
+                } catch (e) {
+                    Benchmark.mark("Database_(connect)_end");
+                    throw e;
+                }
+            }
+        }
+        Benchmark.mark("Database_(connect)_end");
+    }
+
+    /**
      * The username used for connection.
      */
     private _username: string;
+
+    /**
+     * The username of the current connected client.
+     */
+    public get username(): string {
+        return this._username;
+    }
 
     /**
      * The path of the current working server.
@@ -65,13 +122,6 @@ export class Database {
      */
     public get database(): string {
         return this._databaseName;
-    }
-
-    /**
-     * The username of the current connected client.
-     */
-    public get username(): string {
-        return this._username;
     }
 
     /**
@@ -90,7 +140,7 @@ export class Database {
 
     /**
      * Wrapper for async operations.
-     * @returns {{exists: ((database: string) => Promise<boolean>); tableExists: ((name: string) => Promise<boolean>); createDatabase: ((name: string) => Promise<Database>); createTable: ((name: string, prototype: TablePrototype) => Promise<Database>); query: ((query: string) => Promise<any>); queries: ((queries: string) => Promise<any>); prepare: ((query: string) => Promise<PreparedQueryStatement>)}}
+     * @returns {{exists: function, tableExists: function, createDatabase: function, createTable: function, query: function, queries: function, prepare: function}}
      */
     public get async(): {
         readonly exists: (database: string) => Promise<boolean>,
@@ -100,8 +150,7 @@ export class Database {
         readonly query: (query: string) => Promise<any>,
         readonly queries: (queries: string) => Promise<any>,
         readonly prepare: (query: string) => Promise<PreparedQueryStatement>
-    }
-    {
+    } {
         return {
             /**
              * Checks asynchoronously if a database exist in the current working server.
@@ -149,55 +198,41 @@ export class Database {
     }
 
     /**
-     * Database Manager constructor.
-     * @param {string} server The name of the server to connect on
-     * @param {string} username The username which match the server
-     * @param {string} password The password which match the username
-     * @param {string} database The name of the database
+     * Gets the list of databases in a server.
+     * @param {string} server The name of the server to lookup.
      */
-    constructor(server: string, username: string, password: string, database?: string) {
+    public static getDatabaseList(server: string): Array<string> {
+        return _f.existsSync(Util.makePath(_p.dirname(__filename), "servers", server)) ? _f.readdirSync(Util.makePath(_p.dirname(__filename), "servers", server)) : [];
+    }
 
-        if (!Util.isset(server) || !Util.isset(username) || !Util.isset(password)) {
-            throw new Error('Database Error: Can\'t connect to the server, missing parameters.');
-        }
+    /**
+     * Returns the path to a table
+     * @param {string} server The server name
+     * @param {string} database The database name
+     * @param {string} table The table name
+     * @return {string}
+     */
+    public static getTablePath(server: string, database: string, table: string): string {
+        return server + _p.sep + database + _p.sep + table + ".jdbt";
+    }
 
-        let userFound = false;
+    /**
+     * Returns a table's data
+     * @param {string|null} path The path to the table
+     * @return {object}
+     */
+    public static getTableData(path: string) {
+        return JSON.parse(_f.readFileSync(path, "utf8"));
+    }
 
-        Benchmark.mark("Database_(connect)_start");
-        {
-            let config = Configuration.getConfig<UserConfiguration>("users");
-
-            if (!config.hasOwnProperty(server)) {
-                Benchmark.mark('Database_(connect)_end');
-                throw new Error(`Database Error: There is no registered server with the name "${server}".`);
-            }
-
-            for (let user of config[server]) {
-                userFound = user.username === Util.crypt(username) && user.password === Util.crypt(password);
-
-                if (userFound)
-                    break;
-            }
-
-            if (!userFound) {
-                Benchmark.mark("Database_(connect)_end");
-                throw new Error(`Database Error: User's authentication failed for user "${username}" on server "${server}" (Using password: "${password.length > 0 ? "Yes" : "No"}"). Access denied.`);
-            }
-
-            this._serverName = Util.makePath(_p.normalize(_p.dirname(_p.dirname(__filename)) + '/servers/' + server));
-            this._username = username;
-
-            if (Util.isset(database)) {
-                try {
-                    this.setDatabase(<string>database);
-                } catch (e) {
-                    Benchmark.mark("Database_(connect)_end");
-                    throw e;
-                }
-            }
-        }
-        Benchmark.mark("Database_(connect)_end");
-
+    /**
+     * Gets the path to a database
+     * @param {string} server
+     * @param {string} database
+     * @return {string}
+     */
+    public static getDatabasePath(server: string, database: string): string {
+        return server + _p.sep + database;
     }
 
     /**
@@ -205,9 +240,11 @@ export class Database {
      */
     public disconnect() {
         Benchmark.mark("Database_(disconnect)_start");
-        this._serverName = "";
-        this._databaseName = "";
-        this._username = "";
+        {
+            this._serverName = "";
+            this._databaseName = "";
+            this._username = "";
+        }
         Benchmark.mark("Database_(disconnect)_end");
     }
 
@@ -282,14 +319,12 @@ export class Database {
         return Util.existsSync(Database.getTablePath(this.server, this.database, name));
     }
 
-
     /**
      * Checks asynchronously if a table exists in the current working database
      * @param {string} name The name of the teable
      * @returns {boolean}
      */
     public tableExistsAsync(name: string): Promise<boolean> {
-        let that = this;
         return new Promise<boolean>((executor, reject) => {
             try {
                 if (null === executor || !(typeof executor === 'function')) {
@@ -300,7 +335,7 @@ export class Database {
                     return executor(false);
                 }
 
-                Util.exists(Database.getTablePath(that.server, that.database, name))
+                Util.exists(Database.getTablePath(this.server, this.database, name))
                     .then(executor)
                     .catch(reject);
             }
@@ -319,27 +354,29 @@ export class Database {
      */
     public createDatabase(name: string): Database {
         Benchmark.mark("Database_(createDatabase)_start");
-        if (!Util.isset(name) || name.trim() === "") {
-            Benchmark.mark("Database_(createDatabase)_end");
-            throw new Error("Database Error: Can't create the database, the database's name is missing.");
-        }
-        if (!this.isConnected) {
-            Benchmark.mark("Database_(createDatabase)_end");
-            throw new Error(`Database Error: Can't create the database "${name}", there is no connection established with a server.`);
-        }
+        {
+            if (!Util.isset(name) || name.trim() === "") {
+                Benchmark.mark("Database_(createDatabase)_end");
+                throw new Error("Database Error: Can't create the database, the database's name is missing.");
+            }
+            if (!this.isConnected) {
+                Benchmark.mark("Database_(createDatabase)_end");
+                throw new Error(`Database Error: Can't create the database "${name}", there is no connection established with a server.`);
+            }
 
-        let path = Util.makePath(this._serverName, name);
+            let path = Util.makePath(this._serverName, name);
 
-        if (this.exists(name)) {
-            Benchmark.mark("Database_(createDatabase)_end");
-            throw new Error(`Database Error: Can't create the database "${name}" in the server, the database already exist.`);
-        }
+            if (this.exists(name)) {
+                Benchmark.mark("Database_(createDatabase)_end");
+                throw new Error(`Database Error: Can't create the database "${name}" in the server, the database already exist.`);
+            }
 
-        Util.mkdirSync(path);
+            Util.mkdirSync(path);
 
-        if (!Util.exists(path)) {
-            Benchmark.mark("Database_(createDatabase)_end");
-            throw new Error(`Database Error: Can't create the database "${name}" in the server.`);
+            if (!Util.exists(path)) {
+                Benchmark.mark("Database_(createDatabase)_end");
+                throw new Error(`Database Error: Can't create the database "${name}" in the server.`);
+            }
         }
         Benchmark.mark("Database_(createDatabase)_end");
 
@@ -372,14 +409,13 @@ export class Database {
                     return reject(new Error(`Database Error: Can't create the database "${name}", there is no connection established with a server.`));
                 }
 
-                var path = Database.getDatabasePath(this.server, name);
-                var that = this;
+                let path = Database.getDatabasePath(this.server, name);
 
                 Util.exists(path)
                     .then((exists) => {
                         if (exists) {
                             Benchmark.mark('Database_(createDatabase)_end');
-                            return reject(new Error("Database Error: Can't create the database \"" + name + "\" in the server \"" + that.server + "\", the database already exist."));
+                            return reject(new Error("Database Error: Can't create the database \"" + name + "\" in the server \"" + this.server + "\", the database already exist."));
                         }
                         else {
                             Util.mkdir(path)
@@ -390,19 +426,18 @@ export class Database {
                                         }
                                         else {
                                             Benchmark.mark('Database_(createDatabase)_end');
-                                            executor(that);
+                                            executor(this);
                                         }
                                     });
                                 })
                                 .catch(err => {
                                     if (err) {
                                         Benchmark.mark('Database_(createDatabase)_end');
-                                        return reject(new Error("Database Error: Can't create the database \"" + name + "\" in the server \"" + that.server + "\""));
+                                        return reject(new Error("Database Error: Can't create the database \"" + name + "\" in the server \"" + this.server + "\""));
                                     }
                                 });
                         }
-                    })
-                    .catch(reject);
+                    }, reject);
             }
             catch (e) {
                 return reject(e);
@@ -429,29 +464,29 @@ export class Database {
             throw new Error("Database Error: Trying to create a table without using a database.");
         }
 
-        var path = Util.makePath(this._serverName, this._databaseName, name + ".jdbt");
+        let path = Util.makePath(this._serverName, this._databaseName, name + ".jdbt");
 
         if (Util.existsSync(path)) {
             Benchmark.mark("Database_(createTable)_end");
             throw new Error(`Database Error: Can't create the table "${name}" in the database "${this._databaseName}". The table already exist.`);
         }
 
-        var fields: Array<string> = [];
-        var properties = {
+        let fields: Array<string> = [];
+        let properties = {
             last_insert_id: 0,
             last_valid_row_id: 0,
             last_link_id: 0,
             primary_keys: new Array<string>(),
             unique_keys: new Array<string>()
         };
-        var aiExist = false;
+        let aiExist = false;
 
         for (let field in prototype) {
-            var prop = prototype[field];
-            var hasAi = prop.auto_increment !== null;
-            var hasPk = prop.primary_key !== null;
-            var hasUk = prop.unique_key !== null;
-            var hasTp = prop.type !== null;
+            let prop = prototype[field];
+            let hasAi = prop.auto_increment !== null;
+            let hasPk = prop.primary_key !== null;
+            let hasUk = prop.unique_key !== null;
+            let hasTp = prop.type !== null;
 
             if (aiExist && hasAi) {
                 Benchmark.mark("Database_(createTable)_end");
@@ -478,13 +513,13 @@ export class Database {
             }
 
             if (hasTp) {
-                var fType = prop.type;
+                let fType = prop.type;
 
                 if (fType != null) {
                     if (/link\\(.+\\)/.test(fType.toString())) {
-                        var link = fType.toString().replace(new RegExp("link\\((.+)\\)"), "$1");
-                        var linkInfo = link.split('.');
-                        var linkTablePath = Util.makePath(this._serverName, this._databaseName, linkInfo[0] + ".jdbt");
+                        let link = fType.toString().replace(new RegExp("link\\((.+)\\)"), "$1");
+                        let linkInfo = link.split('.');
+                        let linkTablePath = Util.makePath(this._serverName, this._databaseName, linkInfo[0] + ".jdbt");
 
                         if (!Util.existsSync(linkTablePath)) {
                             throw new Error("Database Error: Can't create the table \"" + name +
@@ -493,7 +528,7 @@ export class Database {
                                 "\" doesn't exist in the database \"" + this._databaseName + "\".");
                         }
 
-                        var linkTableData = Database.getTableData(linkTablePath);
+                        let linkTableData = Database.getTableData(linkTablePath);
                         if (linkTableData.prototype.indexOf(linkInfo[1]) == -1) {
                             throw new Error("Database Error: Can't create the table \"" + name +
                                 "\". An error occur when linking the column \"" + field +
@@ -569,7 +604,7 @@ export class Database {
         let tableProperties = Util.merge(properties, prototype);
         fields.unshift("#rowid");
 
-        var data = {
+        let data = {
             prototype: fields,
             properties: tableProperties,
             data: {}
@@ -609,7 +644,7 @@ export class Database {
                     return reject(new Error('Database Error: Trying to create a table without using a database.'));
                 }
 
-                var path = Util.makePath(this._serverName, this._databaseName, name + ".jdbt");
+                let path = Util.makePath(this._serverName, this._databaseName, name + ".jdbt");
 
                 Util.exists(path)
                     .then(exists => {
@@ -618,22 +653,22 @@ export class Database {
                             return reject(new Error(`Database Error: Can't create the table "${name}" in the database "${this._databaseName}". The table already exist.`));
                         }
 
-                        var fields: Array<string> = [];
-                        var properties = {
+                        let fields: Array<string> = [];
+                        let properties = {
                             last_insert_id: 0,
                             last_valid_row_id: 0,
                             last_link_id: 0,
                             primary_keys: new Array<string>(),
                             unique_keys: new Array<string>()
                         };
-                        var aiExist = false;
+                        let aiExist = false;
 
                         for (let field in prototype) {
-                            var prop = prototype[field];
-                            var hasAi = prop.auto_increment !== null;
-                            var hasPk = prop.primary_key !== null;
-                            var hasUk = prop.unique_key !== null;
-                            var hasTp = prop.type !== null;
+                            let prop = prototype[field];
+                            let hasAi = prop.auto_increment !== null;
+                            let hasPk = prop.primary_key !== null;
+                            let hasUk = prop.unique_key !== null;
+                            let hasTp = prop.type !== null;
 
                             if (aiExist && hasAi) {
                                 Benchmark.mark("Database_(createTable)_end");
@@ -660,13 +695,13 @@ export class Database {
                             }
 
                             if (hasTp) {
-                                var fType = prop.type;
+                                let fType = prop.type;
 
                                 if (fType != null) {
                                     if (/link\\(.+\\)/.test(fType.toString())) {
-                                        var link = fType.toString().replace(new RegExp("link\\((.+)\\)"), "$1");
-                                        var linkInfo = link.split('.');
-                                        var linkTablePath = Util.makePath(this._serverName, this._databaseName, linkInfo[0] + ".jdbt");
+                                        let link = fType.toString().replace(new RegExp("link\\((.+)\\)"), "$1");
+                                        let linkInfo = link.split('.');
+                                        let linkTablePath = Util.makePath(this._serverName, this._databaseName, linkInfo[0] + ".jdbt");
 
                                         if (!Util.existsSync(linkTablePath)) {
                                             return reject(new Error("Database Error: Can't create the table \"" + name +
@@ -675,7 +710,7 @@ export class Database {
                                                 "\" doesn't exist in the database \"" + this._databaseName + "\"."));
                                         }
 
-                                        var linkTableData = Database.getTableData(linkTablePath);
+                                        let linkTableData = Database.getTableData(linkTablePath);
                                         if (linkTableData.prototype.indexOf(linkInfo[1]) == -1) {
                                             return reject(new Error("Database Error: Can't create the table \"" + name +
                                                 "\". An error occur when linking the column \"" + field +
@@ -770,8 +805,7 @@ export class Database {
                                     return reject(new Error(`Database Error: Can't create file "${path}".`));
                                 }
                             });
-                    })
-                    .catch(reject);
+                    }, reject);
             }
             catch (e) {
                 return reject(e);
@@ -792,8 +826,6 @@ export class Database {
      * @param {string} query The query to send to the database
      */
     public queryAsync(query: string): Promise<any> {
-        var that = this;
-
         return new Promise<any>((executor, reject) => {
             try {
 
@@ -803,7 +835,7 @@ export class Database {
                     return reject(new Error("Database Error: Can't send a query asynchronously without a callback."));
                 }
 
-                executor(that.query(query));
+                executor(this.query(query));
 
             } catch (e) {
                 return reject(e);
@@ -824,8 +856,6 @@ export class Database {
      * @param {string} queries The queries to send to the database
      */
     public queriesAsync(queries: string): Promise<any> {
-        var that = this;
-
         return new Promise<any>((executor, reject) => {
             try {
 
@@ -835,7 +865,7 @@ export class Database {
                     return reject(new Error("Database Error: Can't send a query asynchronously without a callback."));
                 }
 
-                executor(that.queries(queries));
+                executor(this.queries(queries));
 
             } catch (e) {
                 return reject(e);
@@ -857,8 +887,6 @@ export class Database {
      * @param {string} query The query to send to the database
      */
     public prepareAsync(query: string): Promise<any> {
-        var that = this;
-
         return new Promise<any>((executor, reject) => {
             try {
 
@@ -868,50 +896,11 @@ export class Database {
                     return reject(new Error("Database Error: Can't send a query asynchronously without a callback."));
                 }
 
-                executor(that.prepare(query));
+                executor(this.prepare(query));
 
             } catch (e) {
                 return reject(e);
             }
         });
     }
-
-    /**
-     * Gets the list of databases in a server.
-     * @param {string} server The name of the server to lookup.
-     */
-    public static getDatabaseList(server: string): Array<string> {
-        return _f.existsSync(Util.makePath(_p.dirname(__filename), "servers", server)) ? _f.readdirSync(Util.makePath(_p.dirname(__filename), "servers", server)) : [];
-    }
-
-    /**
-     * Returns the path to a table
-     * @param {string} server The server name
-     * @param {string} database The database name
-     * @param {string} table The table name
-     * @return {string}
-     */
-    public static getTablePath(server: string, database: string, table: string): string {
-        return server + _p.sep + database + _p.sep + table + ".jdbt";
-    }
-
-    /**
-     * Returns a table's data
-     * @param {string|null} path The path to the table
-     * @return {object}
-     */
-    public static getTableData(path: string) {
-        return JSON.parse(_f.readFileSync(path));
-    }
-
-    /**
-     * Gets the path to a database
-     * @param {string} server
-     * @param {string} database
-     * @return {string}
-     */
-    public static getDatabasePath(server: string, database: string): string {
-        return server + _p.sep + database;
-    }
-
 }

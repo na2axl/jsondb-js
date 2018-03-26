@@ -1,7 +1,7 @@
 /**
  * JSONDB - JSON Database Manager
  *
- * Manage JSON files as databases with JSONDB Query Lqanguage (JQL)
+ * Manage JSON files as databases with JSONDB Query Language (JQL)
  *
  * This content is released under the BSD-3-Clause License
  *
@@ -9,22 +9,26 @@
  *
  * @package    JSONDB
  * @author     Nana Axel <ax.lnana@outlook.com>
- * @copyright  Copyright (c) 2016-2017, Alien Technologies
- * @license    http://spdx.org/licences/GPL-3.0 GPL License
+ * @copyright  Copyright (c) 2016-2018, Aliens Group
+ * @license    https://spdx.org/licenses/BSD-3-Clause.html BSD 3-clause "New" or "Revised" License
  * @file       Database.ts
  */
 import {Configuration} from "./Configuration";
+import {Database} from "./Database";
+import {Util} from "./Util";
+import {QueryParser} from "./QueryParser";
 
-declare var __filename: string;
-declare var __dirname: string;
+import * as _f from "fs";
+import * as _p from "path";
 
-import { Database } from "./Database";
-import { Util } from "./Util";
-import { QueryParser } from "./QueryParser";
-
-import * as _f from 'fs';
-import * as _p from 'path';
-
+/**
+ * Class JSONDB
+ *
+ * @package     JSONDB
+ * @subpackage  Managers
+ * @category    Server
+ * @author      Nana Axel <ax.lnana@outlook.com>
+ */
 export class JSONDB {
 
     /**
@@ -100,18 +104,27 @@ export class JSONDB {
     }
 
     /**
+     * Escapes reserved characters and quotes a value
+     * @param {string} value
+     * @return {string}
+     */
+    public static quote(value: string) {
+        return new QueryParser().quote(value);
+    }
+
+    /**
      * Creates a new server.
      * @param {string}  name     The server's name
      * @param {string}  username The server's username
      * @param {string}  password The server's user password
-     * @param {boolean} connect If JSONDB connects directly to the server after creation
+     * @param {boolean} connect  If JSONDB connects directly to the server after creation
      * @returns {JSONDB | Database}
      * @throws {Error}
      */
     public createServer(name: string, username: string, password: string, connect?: boolean): JSONDB | Database {
         connect = connect || false;
 
-        let path = _p.normalize(Util.makePath(_p.dirname(__dirname), 'servers', name));
+        let path = _p.normalize(Util.makePath(_p.dirname(__dirname), "servers", name));
 
         if (null !== path && username !== null) {
             if (Util.existsSync(path) && _f.lstatSync(path).isDirectory()) {
@@ -120,7 +133,7 @@ export class JSONDB {
 
             Util.mkdirSync(path);
 
-            if(!_f.lstatSync(path).isDirectory()) {
+            if (!_f.lstatSync(path).isDirectory()) {
                 throw new Error(`JSONDB Error: Can't create the server at "${path}". Maybe you don't have write access.`);
             }
 
@@ -137,21 +150,6 @@ export class JSONDB {
         }
 
         return this;
-    }
-
-    /**
-     * Checks if a server exists
-     * @param {string} name The name of the server
-     * @return {boolean}
-     */
-    public serverExists(name: string): boolean {
-        if (null === name) {
-            return false;
-        }
-
-        let path = _p.normalize(Util.makePath(_p.dirname(__dirname), 'servers', name));
-
-        return Util.existsSync(path);
     }
 
     /**
@@ -202,12 +200,18 @@ export class JSONDB {
     }
 
     /**
-     * Escapes reserved characters and quotes a value
-     * @param {string} value
-     * @return {string}
+     * Checks if a server exists
+     * @param {string} name The name of the server
+     * @return {boolean}
      */
-    public quote(value: string) {
-        return new QueryParser().quote(value);
+    public serverExists(name: string): boolean {
+        if (!Util.isset(name)) {
+            return false;
+        }
+
+        let path = _p.normalize(Util.makePath(_p.dirname(__dirname), "servers", name));
+
+        return Util.existsSync(path);
     }
 
 }

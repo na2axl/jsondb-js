@@ -9,18 +9,16 @@
  *
  * @package    JSONDB
  * @author     Nana Axel <ax.lnana@outlook.com>
- * @copyright  Copyright (c) 2016-2017, Alien Technologies
+ * @copyright  Copyright (c) 2016-2018, Aliens Group
  * @license    https://spdx.org/licenses/BSD-3-Clause.html BSD 3-clause "New" or "Revised" License
  * @file       Configuration.ts
  */
 
-declare var __filename: string;
+import {Util} from "./Util";
+import {User, UserConfiguration} from "./config/User";
 
-import { Util } from "./Util";
-import { UserConfiguration, User } from "./config/User";
-
-import * as _f from 'fs';
-import * as _p from 'path';
+import * as _f from "fs";
+import * as _p from "path";
 
 /**
  * Class Configuration
@@ -30,14 +28,12 @@ import * as _p from 'path';
  * @category   Configuration
  * @author     Nana Axel <ax.lnana@outlook.com>
  */
-export class Configuration
-{
+export class Configuration {
     /**
      * Removes a server from the list of registered server.
      * @param {string} server The name of the server
      */
-    public static removeServer(server: string)
-    {
+    public static removeServer(server: string) {
         let config = Configuration.getConfig<UserConfiguration>("users");
         delete config[server];
 
@@ -50,17 +46,15 @@ export class Configuration
      * @param {string} username The username
      * @param {string} password The user's password
      */
-    public static addUser(server: string, username: string, password: string)
-    {
-        let config = Configuration.getConfig<UserConfiguration>('users');
+    public static addUser(server: string, username: string, password: string) {
+        let config = Configuration.getConfig<UserConfiguration>("users");
         let user: User = {
             username: Util.crypt(username),
             password: Util.crypt(password)
         };
 
-        if (!Util.isset(config[server]))
-        {
-            config[server] = new Array<User>();
+        if (!Util.isset(config[server])) {
+            config[server] = [];
         }
 
         config[server].push(user);
@@ -74,20 +68,16 @@ export class Configuration
      * @param {string} username The username
      * @param {string} password The user's password
      */
-    public static removeUser(server: string, username: string, password: string)
-    {
+    public static removeUser(server: string, username: string, password: string) {
         let config = Configuration.getConfig<UserConfiguration>("users");
         let i = 0;
 
-        if (!Util.isset(config[server]))
-        {
+        if (!Util.isset(config[server])) {
             return;
         }
 
-        config[server].forEach(user =>
-        {
-            if (user.username === Util.crypt(username) && user.password === Util.crypt(password))
-            {
+        config[server].forEach(user => {
+            if (user.username === Util.crypt(username) && user.password === Util.crypt(password)) {
                 delete config[server][i];
             }
             ++i;
@@ -99,16 +89,13 @@ export class Configuration
     /**
      * Gets a JSONDB configuration file
      * @param {string} filename The config file's name
-     * @type T The configurtion type to return.
+     * @type T The configuration type to return.
      * @return {T}
      */
-    public static getConfig<T>(filename: string): T
-    {
-        if (Configuration._exists(filename))
-        {
-            return <T>JSON.parse(_f.readFileSync(_p.normalize(_p.dirname(_p.dirname(__filename)) + '/config/' + filename + '.json')));
-        } else
-        {
+    public static getConfig<T>(filename: string): T {
+        if (Configuration._exists(filename)) {
+            return <T>JSON.parse(_f.readFileSync(_p.normalize(Util.makePath(_p.dirname(__dirname), "config", `${filename}.json`)), "utf8"));
+        } else {
             Configuration._writeConfig(filename, {});
             return <T>{};
         }
@@ -117,16 +104,13 @@ export class Configuration
     /**
      * Writes a config file
      * @param {string} filename
-     * @param {any}    config
+     * @param {object} config
      * @return {boolean}
      */
-    private static _writeConfig(filename: string, config: any)
-    {
-        var path = _p.normalize(_p.dirname(_p.dirname(__filename)) + '/config/' + filename + '.json');
-        if (!Configuration._exists(filename))
-        {
-            if (_f.closeSync(_f.openSync(path, 'w')))
-            {
+    private static _writeConfig(filename: string, config: any) {
+        const path = _p.normalize(Util.makePath(_p.dirname(__dirname), "config", `${filename}.json`));
+        if (!Configuration._exists(filename)) {
+            if (_f.closeSync(_f.openSync(path, "w"))) {
                 _f.chmodSync(path, 0x1ff);
             }
         }
@@ -138,8 +122,7 @@ export class Configuration
      * @param {string} filename
      * @return {boolean}
      */
-    private static _exists(filename: string)
-    {
-        return Util.existsSync(_p.normalize(_p.dirname(_p.dirname(__filename)) + '/config/' + filename + '.json'));
+    private static _exists(filename: string) {
+        return Util.existsSync(_p.normalize(Util.makePath(_p.dirname(__dirname), "config", `${filename}.json`)));
     }
 }

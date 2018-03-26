@@ -9,14 +9,14 @@
  *
  * @package    JSONDB
  * @author     Nana Axel <ax.lnana@outlook.com>
- * @copyright  Copyright (c) 2016-2017, Alien Technologies
- * @license    http://spdx.org/licences/GPL-3.0 GPL License
- * @file       Database.ts
+ * @copyright  Copyright (c) 2016-2018, Aliens Group
+ * @license    https://spdx.org/licenses/BSD-3-Clause.html BSD 3-clause "New" or "Revised" License
+ * @file       PreparedQueryStatement.ts
  */
 
-import { Util } from "./Util";
-import { Query } from "./Query";
-import { JSONDB } from "./JSONDB";
+import {Util} from "./Util";
+import {Query} from "./Query";
+import {JSONDB} from "./JSONDB";
 
 /**
  * Class PreparedQueryStatement
@@ -42,15 +42,15 @@ export class PreparedQueryStatement {
     private _query: Query;
 
     /**
-     * Wrapper for async operations.
-     * @returns {{execute: (() => Promise<any>)}}
+     * Prepared Query Statement constructor
+     * @param {Query} wrapper The wrapped query
+     * @param {string} query  The prepared query
      */
-    public get async(): {
-        readonly execute: () => Promise<any>
-    } {
-        return {
-            execute: () => this.execute()
-        }
+    constructor(wrapper: Query, query: string) {
+        this._query = wrapper;
+        this.queryString = query;
+
+        this._prepareQuery();
     }
 
     /**
@@ -60,27 +60,28 @@ export class PreparedQueryStatement {
     private _preparedQueryKeys: RegExpMatchArray | null;
 
     /**
-     * Prepared Query Statement constructor
-     * @param {Query} wrapper
+     * Wrapper for async operations.
+     * @returns {{execute: function}}
      */
-    constructor(wrapper: Query) {
-        this._query = wrapper;
-        this.queryString = this._query.getQueryString();
-
-        this._prepareQuery();
+    public get async(): {
+        readonly execute: () => Promise<any>
+    } {
+        return {
+            execute: () => this.executeAsync()
+        }
     }
 
     /**
      * Binds a value in a prepared query.
      * @param {string} key The parameter's key
-     * @param {any} value The parameter's value
+     * @param {object} value The parameter's value
      * @param {number} parse_method The parse method to use
      * @throws {Error}
      */
     public bindValue(key: string, value: any, parse_method: number): void {
         parse_method = parse_method || JSONDB.PARAM_STRING;
 
-        if (this._query.queryIsPrepared()) {
+        if (this._query.queryIsPrepared) {
             if (this._preparedQueryKeys !== null && !!~this._preparedQueryKeys.indexOf(key)) {
                 switch (parse_method) {
                     default:
@@ -97,20 +98,20 @@ export class PreparedQueryStatement {
                         break;
 
                     case JSONDB.PARAM_BOOL:
-                        value = parseInt(value) + ':JSONDB::TO_BOOL:';
+                        value = `${parseInt(value)}:JSONDB::TO_BOOL:`;
                         break;
 
                     case JSONDB.PARAM_NULL:
-                        value = value.toString() + ':JSONDB::TO_NULL:';
+                        value = `${value.toString()}:JSONDB::TO_NULL:`;
                         break;
 
                     case JSONDB.PARAM_ARRAY:
-                        value = JSONDB.quote(Util.serialize(value)) + ':JSONDB::TO_ARRAY:';
+                        value = `${JSONDB.quote(Util.serialize(value))}:JSONDB::TO_ARRAY:`;
                         break;
                 }
                 this.queryString = this.queryString.replace(key, value);
             } else {
-                throw new Error("JSONDB Error: Can't bind the value \"" + value + "\" for the key \"" + key + "\". The key isn't in the query.");
+                throw new Error(`JSONDB Error: Can't bind the value "${value}" for the key "${key}". The key isn't in the query.`);
             }
         } else {
             throw new Error("JSONDB Error: Can't use JSONDB::bindValue() with non prepared queries. Send your query with JSONDB::prepare() first.");
@@ -123,7 +124,7 @@ export class PreparedQueryStatement {
      * @return {*}
      */
     public execute(): any {
-        if (this._query.queryIsPrepared()) {
+        if (this._query.queryIsPrepared) {
             return this._query.send(this.queryString);
         } else {
             throw new Error("JSONDB Error: Can't execute the prepared query. There is no prepared query to execute or the prepared query is already executed.");
@@ -133,10 +134,9 @@ export class PreparedQueryStatement {
     /**
      * Executes the prepared query asynchronously
      * @throws {Error}
-     * @return {Promise<any>}
+     * @return {Promise<object>}
      */
     public executeAsync(): Promise<any> {
-        var that = this;
         return new Promise<any>((executor, reject) => {
             try {
                 executor = executor || null;
@@ -145,8 +145,8 @@ export class PreparedQueryStatement {
                     return reject(new Error("JSONDB Error: Can't execute the prepared query asynchronously without a callback."));
                 }
 
-                if (this._query.queryIsPrepared()) {
-                    return executor(that.execute());
+                if (this._query.queryIsPrepared) {
+                    return executor(this.execute());
                 } else {
                     return reject(new Error("JSONDB Error: Can't execute the prepared query. There is no prepared query to execute or the prepared query is already executed."));
                 }
